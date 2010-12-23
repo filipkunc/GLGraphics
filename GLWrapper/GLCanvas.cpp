@@ -35,6 +35,16 @@ namespace GLWrapper
 		glDisable(GL_BLEND);
 	}
 
+	void GLCanvas::EnableLineAntialiasing()
+	{
+		glEnable(GL_LINE_SMOOTH);
+	}
+
+	void GLCanvas::DisableLineAntialiasing()
+	{
+		glDisable(GL_LINE_SMOOTH);
+	}
+
 	void GLCanvas::SetCurrentColor(Color color)
 	{
 		glColor4ub(color.R, color.G, color.B, color.A);
@@ -63,6 +73,24 @@ namespace GLWrapper
 		glVertex2f(a.X, a.Y);
 		glVertex2f(b.X, b.Y);
 		glEnd();
+	}
+
+	void GLCanvas::DrawLines(array<PointF> ^points)
+	{
+		pin_ptr<PointF> vertexPtr = &points[0];
+		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, sizeof(PointF), vertexPtr);
+		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
+		
+		/*
+		glBegin(GL_LINE_STRIP);
+		for (int i = 0; i < points->Length; i++)
+		{
+			glVertex2f(points[i].X, points[i].Y);
+		}
+		glEnd();
+		*/
 	}
 
 	void GLCanvas::FillRectangle(RectangleF rect)

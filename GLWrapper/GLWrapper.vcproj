@@ -242,6 +242,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DesignModeDevenv.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GLCanvas.h"
 				>
 			</File>

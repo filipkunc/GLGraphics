@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "DesignModeDevenv.h"
 #include "GLCanvas.h"
 #include "CanvasEventArgs.h"
 #include "GLView.h"
@@ -49,11 +50,10 @@ namespace GLWrapper
 
 	void GLView::OnPaint(PaintEventArgs ^e)
 	{
-		if (LicenseManager::UsageMode == LicenseUsageMode::Designtime)
+		if (DesignModeDevenv::DesignMode)
 		{
-			Pen ^pen = gcnew Pen(Color::Gray, 0.0f);
-			pen->DashStyle = DashStyle::Dash;
-			e->Graphics->DrawRectangle(pen, this->ClientRectangle);
+			e->Graphics->Clear(BackColor);
+			e->Graphics->DrawRectangle(Pens::Gray, 0, 0, this->Width - 1, this->Height - 1);
 			return;
 		}
 
@@ -68,17 +68,14 @@ namespace GLWrapper
 
 	void GLView::OnPaintBackground(PaintEventArgs ^e)
 	{
-		if (LicenseManager::UsageMode == LicenseUsageMode::Designtime)
-		{
-			UserControl::OnPaintBackground(e);
-		}
+		
 	}
 
 	#pragma endregion
 
 	void GLView::InitGL()
 	{
-		if (LicenseManager::UsageMode == LicenseUsageMode::Designtime)
+		if (DesignModeDevenv::DesignMode)
 			return;
 
 		deviceContext = GetDC((HWND)this->Handle.ToPointer());

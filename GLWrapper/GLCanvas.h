@@ -15,6 +15,8 @@ namespace GLWrapper
 		void DisableTexturing();
 		void EnableBlend();
 		void DisableBlend();
+		void EnableLineAntialiasing();
+		void DisableLineAntialiasing();
 		
 		void SetCurrentColor(Color color);
 		void SetLineWidth(float width);
@@ -23,6 +25,7 @@ namespace GLWrapper
 		void DrawPoint(PointF a);
 		void FillRectangle(RectangleF rect);
 		void DrawRectangle(RectangleF rect);
+		void DrawLines(array<PointF> ^points);
 
 		GLTexture ^CreateTexture(Bitmap ^bitmap);		
 	};
