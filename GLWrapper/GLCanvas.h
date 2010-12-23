@@ -1,11 +1,7 @@
 #pragma once
 
-using namespace System;
-
 namespace GLWrapper 
 {
-	ref class GLTexture;
-
 	public ref class GLCanvas
 	{
 	public:
@@ -26,7 +22,5 @@ namespace GLWrapper
 		void FillRectangle(RectangleF rect);
 		void DrawRectangle(RectangleF rect);
 		void DrawLines(array<PointF> ^points);
-
-		GLTexture ^CreateTexture(Bitmap ^bitmap);		
 	};
 }

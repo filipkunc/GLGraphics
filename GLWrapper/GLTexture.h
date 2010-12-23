@@ -6,22 +6,20 @@ typedef struct
 	GLshort s, t;
 } GLVertex;
 
-void CreateTexture(GLubyte *data, int components, GLuint *textureID, int width, int height, bool convertToAlpha);
-
 namespace GLWrapper
 {
 	public ref class GLTexture
 	{
 	private:
 		unsigned int textureID;
-		float width;
-		float height;
+		int width;
+		int height;
 	public:
-		property float Width { float get() { return width; } }
-		property float Height { float get() { return height; } }
+		property int Width { int get() { return width; } }
+		property int Height { int get() { return height; } }
 		
-		GLTexture(unsigned int textureID, float width, float height);
-
-		void Draw(PointF position);		
+		GLTexture(Bitmap ^bitmap);
+		void Update(Bitmap ^bitmap);
+		void Draw(PointF position);
 	};
 }

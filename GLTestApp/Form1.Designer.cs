@@ -50,6 +50,7 @@
             this.glView1.Name = "glView1";
             this.glView1.Size = new System.Drawing.Size(530, 486);
             this.glView1.TabIndex = 0;
+            this.glView1.Click += new System.EventHandler(this.glView1_Click);
             this.glView1.PaintCanvas += new System.EventHandler<GLWrapper.CanvasEventArgs>(this.glView1_PaintCanvas);
             // 
             // pictureBox1
@@ -62,6 +63,7 @@
             this.pictureBox1.Size = new System.Drawing.Size(534, 486);
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
             // 
             // label1

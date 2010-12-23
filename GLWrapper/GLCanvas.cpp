@@ -8,7 +8,6 @@ namespace GLWrapper
 	{
 		glClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
 
-		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -82,15 +81,15 @@ namespace GLWrapper
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, sizeof(PointF), vertexPtr);
 		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
+		glDisableClientState(GL_VERTEX_ARRAY);
 		
-		/*
-		glBegin(GL_LINE_STRIP);
+		/*glBegin(GL_LINE_STRIP);
 		for (int i = 0; i < points->Length; i++)
 		{
 			glVertex2f(points[i].X, points[i].Y);
 		}
-		glEnd();
-		*/
+		glEnd();*/
+		
 	}
 
 	void GLCanvas::FillRectangle(RectangleF rect)
@@ -106,18 +105,5 @@ namespace GLWrapper
 		glVertex2f(rect.X + rect.Width, rect.Y + rect.Height + 1.0f);
 		glVertex2f(rect.X, rect.Y + rect.Height);
 		glEnd();		
-	}
-
-	GLTexture ^GLCanvas::CreateTexture(Bitmap ^bitmap)
-	{
-		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
-        BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
-
-		unsigned int textureID;
-		::CreateTexture((GLubyte *)data->Scan0.ToPointer(), 4, &textureID, rect.Width, rect.Height, false);
-		
-		bitmap->UnlockBits(data);
-
-		return gcnew GLTexture(textureID, (float)rect.Width, (float)rect.Height);
 	}	
 }

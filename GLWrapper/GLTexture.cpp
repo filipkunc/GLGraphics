@@ -1,11 +1,9 @@
 #include "stdafx.h"
 #include "GLTexture.h"
 
-void CreateTexture(GLubyte *data, int components, GLuint *textureID, int width, int height, bool convertToAlpha)
+void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, int height, bool convertToAlpha)
 {
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, textureID);
-	glBindTexture(GL_TEXTURE_2D, *textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	if (convertToAlpha)
 	{
@@ -46,11 +44,28 @@ void CreateTexture(GLubyte *data, int components, GLuint *textureID, int width, 
 
 namespace GLWrapper
 {
-	GLTexture::GLTexture(unsigned int textureID, float width, float height)
+	GLTexture::GLTexture(Bitmap ^bitmap)
 	{
+		unsigned int textureID = 0;
+
+		glEnable(GL_TEXTURE_2D);
+		glGenTextures(1, &textureID);
 		this->textureID = textureID;
-		this->width = width;
-		this->height = height;
+		
+		Update(bitmap);		
+	}
+
+	void GLTexture::Update(Bitmap ^bitmap)
+	{
+		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
+        BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
+
+		::UpdateTexture((GLubyte *)data->Scan0.ToPointer(), 4, textureID, rect.Width, rect.Height, false);
+
+		bitmap->UnlockBits(data);
+
+		width = rect.Width;
+		height = rect.Height;
 	}
 
 	void GLTexture::Draw(PointF position)
@@ -73,5 +88,8 @@ namespace GLWrapper
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_SHORT, sizeof(GLVertex), &vertices->s);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);	
 	}	
 }
