@@ -57,13 +57,7 @@ namespace GLWrapper
 			return;
 		}
 
-		if (!deviceContext || !glRenderingContext)
-			return;
-
-		BeginGL();
-		DrawGL();
-		SwapBuffers(deviceContext);
-		EndGL();
+		PaintGL();
 	}
 
 	void GLView::OnPaintBackground(PaintEventArgs ^e)
@@ -72,6 +66,17 @@ namespace GLWrapper
 	}
 
 	#pragma endregion
+
+	void GLView::PaintGL()
+	{
+		if (!deviceContext || !glRenderingContext)
+			return;
+
+		BeginGL();
+		DrawGL();
+		SwapBuffers(deviceContext);
+		EndGL();
+	}
 
 	void GLView::InitGL()
 	{

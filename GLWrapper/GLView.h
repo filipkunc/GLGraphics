@@ -26,6 +26,7 @@ namespace GLWrapper
 		void EndGL();
 		void ReshapeFlippedOrtho2D();
 		void DrawGL();
+		void PaintGL();
 
 		event EventHandler<CanvasEventArgs ^> ^PaintCanvas;
 		

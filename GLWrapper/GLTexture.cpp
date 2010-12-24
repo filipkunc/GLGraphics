@@ -44,6 +44,15 @@ void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, i
 
 namespace GLWrapper
 {
+	GLTexture::GLTexture()
+	{
+		unsigned int textureID = 0;
+
+		glEnable(GL_TEXTURE_2D);
+		glGenTextures(1, &textureID);
+		this->textureID = textureID;
+	}
+
 	GLTexture::GLTexture(Bitmap ^bitmap)
 	{
 		unsigned int textureID = 0;
@@ -54,7 +63,7 @@ namespace GLWrapper
 		
 		Update(bitmap);		
 	}
-
+	
 	void GLTexture::Update(Bitmap ^bitmap)
 	{
 		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);

@@ -18,6 +18,7 @@ namespace GLWrapper
 		property int Width { int get() { return width; } }
 		property int Height { int get() { return height; } }
 		
+		GLTexture();
 		GLTexture(Bitmap ^bitmap);
 		void Update(Bitmap ^bitmap);
 		void Draw(PointF position);

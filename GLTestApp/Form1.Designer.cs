@@ -31,8 +31,8 @@
             this.components = new System.ComponentModel.Container();
             this.glView1 = new GLWrapper.GLView();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.labelGL = new System.Windows.Forms.Label();
+            this.labelGDI = new System.Windows.Forms.Label();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -66,44 +66,43 @@
             this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
             // 
-            // label1
+            // labelGL
             // 
-            this.label1.AutoSize = true;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label1.Location = new System.Drawing.Point(0, 0);
-            this.label1.Name = "label1";
-            this.label1.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
-            this.label1.Size = new System.Drawing.Size(47, 23);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "OpenGL";
+            this.labelGL.AutoSize = true;
+            this.labelGL.Dock = System.Windows.Forms.DockStyle.Top;
+            this.labelGL.Location = new System.Drawing.Point(0, 0);
+            this.labelGL.Name = "labelGL";
+            this.labelGL.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
+            this.labelGL.Size = new System.Drawing.Size(47, 23);
+            this.labelGL.TabIndex = 2;
+            this.labelGL.Text = "OpenGL";
             // 
-            // label2
+            // labelGDI
             // 
-            this.label2.AutoSize = true;
-            this.label2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label2.Location = new System.Drawing.Point(0, 0);
-            this.label2.Name = "label2";
-            this.label2.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
-            this.label2.Size = new System.Drawing.Size(32, 23);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "GDI+";
+            this.labelGDI.AutoSize = true;
+            this.labelGDI.Dock = System.Windows.Forms.DockStyle.Top;
+            this.labelGDI.Location = new System.Drawing.Point(0, 0);
+            this.labelGDI.Name = "labelGDI";
+            this.labelGDI.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
+            this.labelGDI.Size = new System.Drawing.Size(32, 23);
+            this.labelGDI.TabIndex = 3;
+            this.labelGDI.Text = "GDI+";
             // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.IsSplitterFixed = true;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.pictureBox1);
-            this.splitContainer1.Panel1.Controls.Add(this.label2);
+            this.splitContainer1.Panel1.Controls.Add(this.labelGDI);
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.glView1);
-            this.splitContainer1.Panel2.Controls.Add(this.label1);
+            this.splitContainer1.Panel2.Controls.Add(this.labelGL);
             this.splitContainer1.Size = new System.Drawing.Size(1068, 509);
             this.splitContainer1.SplitterDistance = 534;
             this.splitContainer1.TabIndex = 4;
@@ -136,8 +135,8 @@
 
         private GLWrapper.GLView glView1;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelGDI;
+        private System.Windows.Forms.Label labelGL;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.Timer timer1;
     }
