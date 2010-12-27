@@ -4,68 +4,121 @@
 
 namespace GLWrapper
 {
+	GLCanvas::GLCanvas(Color backColor)
+	{
+		_texture2DEnabled = false;
+		glDisable(GL_TEXTURE_2D);
+
+		_blendEnabled = true;
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		_antialiasingEnabled = false;
+
+		_lineWidth = 1.0f;
+		_pointSize = 1.0f;
+
+		_currentColor = Color::Transparent;
+		glColor4ub(0, 0, 0, 0);
+
+		Clear(backColor);
+	}
+
 	void GLCanvas::Clear(Color color)
 	{
 		glClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	void GLCanvas::EnableTexturing()
+	bool GLCanvas::Texture2DEnabled::get()
 	{
-		glEnable(GL_TEXTURE_2D);
+		return _texture2DEnabled;
 	}
 
-	void GLCanvas::DisableTexturing()
+	void GLCanvas::Texture2DEnabled::set(bool value)
 	{
-		glDisable(GL_TEXTURE_2D);
+		if (_texture2DEnabled != value)
+		{
+			_texture2DEnabled = value;
+			if (_texture2DEnabled)
+				glEnable(GL_TEXTURE_2D);
+			else
+				glDisable(GL_TEXTURE_2D);
+		}
 	}
 
-	void GLCanvas::EnableBlend()
+	bool GLCanvas::BlendEnabled::get()
 	{
-		glEnable(GL_BLEND);
+		return _blendEnabled;
 	}
 
-	void GLCanvas::DisableBlend()
+	void GLCanvas::BlendEnabled::set(bool value)
 	{
-		glDisable(GL_BLEND);
+		if (_blendEnabled != value)
+		{
+			_blendEnabled = value;
+			if (_blendEnabled)
+				glEnable(GL_BLEND);
+			else
+				glDisable(GL_BLEND);
+		}
 	}
 
-	void GLCanvas::EnableLineAntialiasing()
+	bool GLCanvas::AntialiasingEnabled::get()
 	{
-		glEnable(GL_LINE_SMOOTH);
+		return _antialiasingEnabled;
 	}
 
-	void GLCanvas::DisableLineAntialiasing()
+	void GLCanvas::AntialiasingEnabled::set(bool value)
 	{
-		glDisable(GL_LINE_SMOOTH);
+		if (_antialiasingEnabled != value)
+		{
+			_antialiasingEnabled = value;
+			if (_antialiasingEnabled)
+			{
+				glEnable(GL_LINE_SMOOTH);
+				glHint(GL_LINE_SMOOTH, GL_NICEST);
+			}
+			else
+			{
+				glDisable(GL_LINE_SMOOTH);				
+			}
+		}
 	}
 
-	void GLCanvas::SetCurrentColor(Color color)
+	float GLCanvas::LineWidth::get()
 	{
-		glColor4ub(color.R, color.G, color.B, color.A);
+		return _lineWidth;
 	}
 
-	void GLCanvas::SetLineWidth(float width)
+	void GLCanvas::LineWidth::set(float value)
 	{
-		glLineWidth(width);
+		_lineWidth = value;
+		glLineWidth(_lineWidth);
 	}
 
-	void GLCanvas::SetPointSize(float size)
+	float GLCanvas::PointSize::get()
 	{
-		glPointSize(size);
+		return _pointSize;
 	}
 
-	void GLCanvas::DrawPoint(PointF a)
+	void GLCanvas::PointSize::set(float value)
 	{
-		glBegin(GL_POINTS);
-		glVertex2f(a.X, a.Y);
-		glEnd();
+		_pointSize = value;
+		glPointSize(_pointSize);
 	}
 
+	Color GLCanvas::CurrentColor::get()
+	{
+		return _currentColor;
+	}
+
+	void GLCanvas::CurrentColor::set(Color value)
+	{
+		_currentColor = value;
+		glColor4ub(_currentColor.R, _currentColor.G, _currentColor.B, _currentColor.A);
+	}
+	
 	void GLCanvas::DrawLine(PointF a, PointF b)
 	{
 		glBegin(GL_LINES);
@@ -82,14 +135,23 @@ namespace GLWrapper
 		glVertexPointer(2, GL_FLOAT, sizeof(PointF), vertexPtr);
 		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
 		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	void GLCanvas::DrawPoint(PointF a)
+	{
+		glBegin(GL_POINTS);
+		glVertex2f(a.X, a.Y);
+		glEnd();
+	}
+
+	void GLCanvas::DrawPoints(array<PointF> ^points)
+	{
+		pin_ptr<PointF> vertexPtr = &points[0];
 		
-		/*glBegin(GL_LINE_STRIP);
-		for (int i = 0; i < points->Length; i++)
-		{
-			glVertex2f(points[i].X, points[i].Y);
-		}
-		glEnd();*/
-		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, sizeof(PointF), vertexPtr);
+		glDrawArrays(GL_POINTS, 0, points->Length);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 
 	void GLCanvas::FillRectangle(RectangleF rect)

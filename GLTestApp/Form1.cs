@@ -17,7 +17,6 @@ namespace GLTestApp
     {
         PointF[] points = new PointF[4000];
         float offset = 0.0f;
-        GLTexture fontTexture = null;
         bool drawGDI = false;
         bool drawOpenGL = false;
 
@@ -36,26 +35,14 @@ namespace GLTestApp
 
             GLCanvas g = e.Canvas;
 
-            if (fontTexture == null)
-                fontTexture = new GLTexture();
-            
             g.Clear(Color.White);
-            g.DisableTexturing();            
-
-            g.SetCurrentColor(Color.Black);
-            g.EnableLineAntialiasing();
+            g.CurrentColor = Color.Black;
+            g.AntialiasingEnabled = true;
+            
             g.DrawLines(points);
 
-            g.EnableTexturing();
-            g.SetCurrentColor(Color.White);
-
-            fontTexture.GdiToTexture(256, 128, gg =>
-                {
-                    gg.Clear(Color.Transparent);
-                    gg.DrawString("Test string", this.Font, Brushes.Blue, 0.0f, 0.0f);
-                });
-
-            fontTexture.Draw(new PointF(10.0f, 10.0f));
+            g.CurrentColor = Color.Blue;
+            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), new PointF(10.0f, 10.0f));
 
             watch.Stop();
             labelGL.Text = "OpenGL " + (1.0 / watch.Elapsed.TotalSeconds);
@@ -75,7 +62,7 @@ namespace GLTestApp
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.DrawLines(Pens.Black, points);
 
-            g.DrawString("Test string", this.Font, Brushes.Blue, 10.0f, 10.0f);
+            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), Brushes.Blue, new PointF(10.0f, 10.0f));
 
             watch.Stop();
             labelGDI.Text = "GDI+ " + (1.0 / watch.Elapsed.TotalSeconds);
@@ -101,7 +88,7 @@ namespace GLTestApp
             if (drawGDI)
                 pictureBox1.Refresh();
             if (drawOpenGL)
-                glView1.PaintGL();
+                glView1.Refresh();
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
@@ -113,20 +100,5 @@ namespace GLTestApp
         {
             drawOpenGL = !drawOpenGL;
         }
-    }
-
-    public static class GLTextureExtensions
-    {
-        public static void GdiToTexture(this GLTexture texture, int width, int height, Action<Graphics> draw)
-        {
-            using (Bitmap bitmap = new Bitmap(width, height))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    draw(g);                    
-                }
-                texture.Update(bitmap);
-            }
-        }
-    }
+    }    
 }

@@ -11,6 +11,7 @@ namespace GLWrapper
 		HGLRC glRenderingContext;
 		GLView ^sharedContextView;
 		PointF viewOffset;
+		GLCanvas ^glCanvas;
 	protected:
 		~GLView();
 

@@ -11,6 +11,7 @@ namespace GLWrapper
 		deviceContext = nullptr;
 		glRenderingContext = nullptr;
 		sharedContextView = nullptr;
+		glCanvas = nullptr;
 		viewOffset.X = 0.0f;
 		viewOffset.Y = 0.0f;
 	}
@@ -160,7 +161,11 @@ namespace GLWrapper
 	void GLView::DrawGL()
 	{
 		ReshapeFlippedOrtho2D();
-		CanvasEventArgs ^args = gcnew CanvasEventArgs(gcnew GLCanvas());
+
+		if (glCanvas == nullptr)
+			glCanvas = gcnew GLCanvas(this->BackColor);
+		
+		CanvasEventArgs ^args = gcnew CanvasEventArgs(glCanvas);
 		PaintCanvas(this, args);		
 	}
 }

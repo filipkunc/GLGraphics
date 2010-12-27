@@ -4,24 +4,30 @@ namespace GLWrapper
 {
 	public ref class GLCanvas
 	{
+	private:
+		bool _texture2DEnabled;
+		bool _blendEnabled;
+		bool _antialiasingEnabled;
+		float _lineWidth;
+		float _pointSize;
+		Color _currentColor;
 	public:
-		void Clear(Color color);
+		GLCanvas(Color backColor);
 
-		void EnableTexturing();
-		void DisableTexturing();
-		void EnableBlend();
-		void DisableBlend();
-		void EnableLineAntialiasing();
-		void DisableLineAntialiasing();
+		property bool Texture2DEnabled { bool get(); void set(bool value); }
+		property bool BlendEnabled { bool get(); void set(bool value); }
+		property bool AntialiasingEnabled { bool get(); void set(bool value); }
+		property float LineWidth { float get(); void set(float value); }
+		property float PointSize { float get(); void set(float value); }
+		property Color CurrentColor { Color get(); void set(Color value); }
 		
-		void SetCurrentColor(Color color);
-		void SetLineWidth(float width);
-		void SetPointSize(float size);
+		void Clear(Color color);
 
 		void DrawLine(PointF a, PointF b);
 		void DrawLines(array<PointF> ^points);
 
-		void DrawPoint(PointF a);		
+		void DrawPoint(PointF a);
+		void DrawPoints(array<PointF> ^points);
 		
 		void DrawRectangle(RectangleF rect);
 		void FillRectangle(RectangleF rect);
