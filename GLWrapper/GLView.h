@@ -12,21 +12,24 @@ namespace GLWrapper
 		GLView ^sharedContextView;
 		PointF viewOffset;
 		GLCanvas ^glCanvas;
+		bool glEnabled;
+		bool neverInitGL;
 	protected:
 		~GLView();
 
 		virtual void OnLoad(EventArgs ^e) override;
 		virtual void OnSizeChanged(EventArgs ^e) override;
 		virtual void OnPaintBackground(PaintEventArgs ^e) override;
-		virtual void OnPaint(PaintEventArgs ^e) override;		
-	public:
-		GLView(void);
+		virtual void OnPaint(PaintEventArgs ^e) override;
 
 		void InitGL();
 		void BeginGL();
 		void EndGL();
 		void ReshapeFlippedOrtho2D();
-		void DrawGL();
+		void DrawGL();		
+	public:
+		GLView(void);
+
 		void PaintGL();
 
 		event EventHandler<CanvasEventArgs ^> ^PaintCanvas;
@@ -46,6 +49,23 @@ namespace GLWrapper
 			PointF get() { return viewOffset; }
 			void set(PointF value) { viewOffset = value; }
 		}
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility::Hidden)]
+		property bool GLEnabled
+		{
+			bool get() { return glEnabled; }
+			void set(bool value) { glEnabled = value; DoubleBuffered = !value; }
+		}
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility::Hidden)]
+		property bool NeverInitGL
+		{
+			bool get() { return neverInitGL; }
+			void set(bool value) { neverInitGL = value; }
+		}
+
 	private:
 	#pragma region Windows Form Designer generated code
 		/// <summary>

@@ -21,6 +21,6 @@ namespace GLWrapper
 		GLTexture();
 		GLTexture(Bitmap ^bitmap);
 		void Update(Bitmap ^bitmap);
-		void Draw(PointF position);
+		void Draw(PointF position);		
 	};
 }

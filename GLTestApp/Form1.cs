@@ -10,6 +10,7 @@ using GLWrapper;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Diagnostics;
+using GraphicsInterface;
 
 namespace GLTestApp
 {
@@ -17,55 +18,12 @@ namespace GLTestApp
     {
         PointF[] points = new PointF[4000];
         float offset = 0.0f;
-        bool drawGDI = false;
-        bool drawOpenGL = false;
 
         public Form1()
         {
             InitializeComponent();
-        }
-
-        private void glView1_PaintCanvas(object sender, CanvasEventArgs e)
-        {
-            if (!drawOpenGL)
-                return;
-
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-
-            GLCanvas g = e.Canvas;
-
-            g.Clear(Color.White);
-            g.CurrentColor = Color.Black;
-            g.AntialiasingEnabled = true;
-            
-            g.DrawLines(points);
-
-            g.CurrentColor = Color.Blue;
-            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), new PointF(10.0f, 10.0f));
-
-            watch.Stop();
-            labelGL.Text = "OpenGL " + (1.0 / watch.Elapsed.TotalSeconds);
-        }
-
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
-        {
-            if (!drawGDI)
-                return;
-
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-
-            Graphics g = e.Graphics;
-            g.Clear(Color.White);
-
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.DrawLines(Pens.Black, points);
-
-            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), Brushes.Blue, new PointF(10.0f, 10.0f));
-
-            watch.Stop();
-            labelGDI.Text = "GDI+ " + (1.0 / watch.Elapsed.TotalSeconds);
+            glView1.GLEnabled = false;
+            //glView1.NeverInitGL = true;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -85,20 +43,34 @@ namespace GLTestApp
             if (offset > 2.0f * (float)Math.PI)
                 offset -= 2.0f * (float)Math.PI;
 
-            if (drawGDI)
-                pictureBox1.Refresh();
-            if (drawOpenGL)
-                glView1.Refresh();
+            glView1.Refresh();
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
+        void Draw(IGraphics g)
         {
-            drawGDI = !drawGDI;
+            g.Clear(Color.White);
+
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.DrawLines(Pens.Black, points);
+
+            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), Brushes.Blue, new PointF(10.0f, 10.0f));
         }
 
-        private void glView1_Click(object sender, EventArgs e)
+        private void glView1_Paint(object sender, PaintEventArgs e)
         {
-            drawOpenGL = !drawOpenGL;
+            GDIGraphics g = new GDIGraphics(e.Graphics);
+            Draw(g);
+        }
+
+        private void glView1_PaintCanvas(object sender, CanvasEventArgs e)
+        {
+            GLGraphics g = new GLGraphics(e.Canvas);
+            Draw(g);            
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            glView1.GLEnabled = checkBox1.Checked;
         }
     }    
 }

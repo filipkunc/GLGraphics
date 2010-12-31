@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLTestApp", "GLTestApp\GLTe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLWrapper", "GLWrapper\GLWrapper.vcproj", "{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphicsInterface", "GraphicsInterface\GraphicsInterface.csproj", "{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,16 @@ Global
 		{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}.Release|Win32.ActiveCfg = Release|Win32
 		{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}.Release|Win32.Build.0 = Release|Win32
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

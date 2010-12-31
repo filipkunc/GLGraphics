@@ -118,6 +118,16 @@ namespace GLWrapper
 		_currentColor = value;
 		glColor4ub(_currentColor.R, _currentColor.G, _currentColor.B, _currentColor.A);
 	}
+
+	Size GLCanvas::CanvasSize::get()
+	{
+		return _size;
+	}
+
+	void GLCanvas::CanvasSize::set(Size value)
+	{
+		_size = value;
+	}
 	
 	void GLCanvas::DrawLine(PointF a, PointF b)
 	{
@@ -168,4 +178,16 @@ namespace GLWrapper
 		glVertex2f(rect.X, rect.Y + rect.Height);
 		glEnd();		
 	}	
+
+	void GLCanvas::DrawPixels(Bitmap ^bitmap)
+	{
+		bitmap->RotateFlip(System::Drawing::RotateFlipType::RotateNoneFlipY);
+
+		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
+        BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
+
+		glDrawPixels(rect.Width, rect.Height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data->Scan0.ToPointer());
+
+		bitmap->UnlockBits(data);		
+	}
 }

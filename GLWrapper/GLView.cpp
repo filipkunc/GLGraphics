@@ -14,11 +14,18 @@ namespace GLWrapper
 		glCanvas = nullptr;
 		viewOffset.X = 0.0f;
 		viewOffset.Y = 0.0f;
+		glEnabled = true;
+		neverInitGL = false;
 	}
 
 	GLView::~GLView()
 	{
 		EndGL();
+		if (glRenderingContext)
+		{
+			wglDeleteContext(glRenderingContext);
+			glRenderingContext = nullptr;
+		}
 		if (components)
 		{
 			delete components;
@@ -58,12 +65,16 @@ namespace GLWrapper
 			return;
 		}
 
-		PaintGL();
+		if (!glEnabled)
+			UserControl::OnPaint(e);
+		else
+			PaintGL();
 	}
 
 	void GLView::OnPaintBackground(PaintEventArgs ^e)
 	{
-		
+		if (!glEnabled)
+			UserControl::OnPaintBackground(e);
 	}
 
 	#pragma endregion
@@ -81,7 +92,7 @@ namespace GLWrapper
 
 	void GLView::InitGL()
 	{
-		if (DesignModeDevenv::DesignMode)
+		if (DesignModeDevenv::DesignMode || neverInitGL)
 			return;
 
 		deviceContext = GetDC((HWND)this->Handle.ToPointer());
@@ -165,6 +176,8 @@ namespace GLWrapper
 		if (glCanvas == nullptr)
 			glCanvas = gcnew GLCanvas(this->BackColor);
 		
+		glCanvas->CanvasSize = this->ClientSize;
+
 		CanvasEventArgs ^args = gcnew CanvasEventArgs(glCanvas);
 		PaintCanvas(this, args);		
 	}

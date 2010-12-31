@@ -11,6 +11,7 @@ namespace GLWrapper
 		float _lineWidth;
 		float _pointSize;
 		Color _currentColor;
+		Size _size;
 	public:
 		GLCanvas(Color backColor);
 
@@ -20,6 +21,7 @@ namespace GLWrapper
 		property float LineWidth { float get(); void set(float value); }
 		property float PointSize { float get(); void set(float value); }
 		property Color CurrentColor { Color get(); void set(Color value); }
+		property Size CanvasSize { Size get(); void set(Size value); }
 		
 		void Clear(Color color);
 
@@ -31,5 +33,7 @@ namespace GLWrapper
 		
 		void DrawRectangle(RectangleF rect);
 		void FillRectangle(RectangleF rect);
+
+		void DrawPixels(Bitmap ^bitmap);
 	};
 }
