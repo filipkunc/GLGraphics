@@ -8,27 +8,17 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using GLWrapper;
+using System.Windows.Forms;
 
 namespace GLTestApp
 {
     public class GLGraphics : IGraphics
     {
-        static GLTexture _gdiTexture = null;
-
-        private static int nextPow2(int n)
-        {
-            int x = 2;
-            while (x < n)
-                x <<= 1;
-            return x;
-        }
-        
         GLCanvas g;
 
         public GLGraphics(GLCanvas canvas)
         {
             g = canvas;
-            
         }
 
         public Region Clip
@@ -564,17 +554,18 @@ namespace GLTestApp
 
         public void DrawLine(Pen pen, PointF pt1, PointF pt2)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.DrawLine(pt1, pt2);
         }
 
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
         {
-            throw new NotImplementedException();
+            this.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
         }
 
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
         {
-            throw new NotImplementedException();
+            this.DrawLine(pen, new Point(x1, y1), new Point(x2, y2));
         }
 
         public void DrawLines(Pen pen, Point[] points)
@@ -648,80 +639,70 @@ namespace GLTestApp
             throw new NotImplementedException();
         }
 
-        private void DrawGDITexture(Action<Graphics> draw)
+        static GLTexture _fontTexture;
+
+        public static void GdiToTexture(GLTexture texture, Size size, Action<Graphics> draw)
         {
-            int width = nextPow2(g.CanvasSize.Width);
-            int height = nextPow2(g.CanvasSize.Height);
-
-            using (Bitmap bitmap = new Bitmap(width, height))
+            using (Bitmap bitmap = new Bitmap(size.Width, size.Height))
             {
-                using (Graphics gdi = Graphics.FromImage(bitmap))
+                using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    draw(gdi);
+                    draw(g);
                 }
-
-                g.Texture2DEnabled = true;
-                g.CurrentColor = Color.White;
-
-                if (_gdiTexture == null)
-                    _gdiTexture = new GLTexture(bitmap);
-                else
-                    _gdiTexture.Update(bitmap);
-
-                _gdiTexture.Draw(PointF.Empty);
-                g.Texture2DEnabled = false;
-            }      
+                texture.Update(bitmap);
+            }
         }
 
-        private void DrawGDIPixels(Action<Graphics> draw)
+        private static int nextPow2(int n)
         {
-            int width = g.CanvasSize.Width;
-            int height = g.CanvasSize.Height;
-
-            using (Bitmap bitmap = new Bitmap(width, height))
-            {
-                using (Graphics gdi = Graphics.FromImage(bitmap))
-                {
-                    draw(gdi);
-                }
-
-                g.DrawPixels(bitmap);
-            }        
-        }
-
-        private void DrawGDI(Action<Graphics> draw)
-        {
-            DrawGDITexture(draw);
+            int x = 2;
+            while (x < n)
+                x <<= 1;
+            return x;
         }
 
         public void DrawString(string s, Font font, Brush brush, PointF point)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, point));
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+
+            if (_fontTexture == null)
+                _fontTexture = new GLTexture();
+
+            Size size = TextRenderer.MeasureText(s, font);
+            size.Width = nextPow2(size.Width);
+            size.Height = nextPow2(size.Height);
+
+            GdiToTexture(_fontTexture, size, gdi => gdi.DrawString(s, font, brush, PointF.Empty));
+            
+            _fontTexture.Draw(point);
+
+            g.Texture2DEnabled = false;
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, layoutRectangle));
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, x, y));
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, PointF point, StringFormat format)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, point, format));
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, layoutRectangle, format));
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y, StringFormat format)
         {
-            DrawGDI(gdi => gdi.DrawString(s, font, brush, x, y, format));
+            throw new NotImplementedException();
         }
 
         public void EndContainer(GraphicsContainer container)

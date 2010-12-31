@@ -54,6 +54,15 @@ namespace GLTestApp
             g.DrawLines(Pens.Black, points);
 
             g.DrawString("Test string, ☺", new Font("Arial", 20.0f), Brushes.Blue, new PointF(10.0f, 10.0f));
+
+            g.DrawLine(Pens.Black, new PointF(30.0f, 400.0f), new PointF(830.0f, 400.0f));
+
+            for (int x = 1; x < 40; x++)
+            {
+                g.DrawLine(Pens.Black, new PointF(30.0f + x * 20.0f, 410.0f), new PointF(30.0f + x * 20.0f, 390.0f));
+
+                g.DrawString(x.ToString(), this.Font, Brushes.Blue, new PointF(30.0f + x * 20.0f, 380.0f));
+            }            
         }
 
         private void glView1_Paint(object sender, PaintEventArgs e)
