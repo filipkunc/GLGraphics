@@ -32,6 +32,7 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.glView1 = new GLWrapper.GLView();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // timer1
@@ -59,16 +60,26 @@
             this.glView1.BackColor = System.Drawing.Color.White;
             this.glView1.Location = new System.Drawing.Point(12, 35);
             this.glView1.Name = "glView1";
-            this.glView1.Size = new System.Drawing.Size(982, 437);
+            this.glView1.Size = new System.Drawing.Size(965, 518);
             this.glView1.TabIndex = 1;
             this.glView1.Paint += new System.Windows.Forms.PaintEventHandler(this.glView1_Paint);
             this.glView1.PaintCanvas += new System.EventHandler<GLWrapper.CanvasEventArgs>(this.glView1_PaintCanvas);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(202, 13);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(30, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "FPS:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1006, 484);
+            this.ClientSize = new System.Drawing.Size(989, 565);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.glView1);
             this.Controls.Add(this.checkBox1);
             this.Name = "Form1";
@@ -83,6 +94,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.CheckBox checkBox1;
         private GLWrapper.GLView glView1;
+        private System.Windows.Forms.Label label1;
     }
 }
 

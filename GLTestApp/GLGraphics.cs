@@ -42,46 +42,36 @@ namespace GLTestApp
         {
             get
             {
-                throw new NotImplementedException();
+                if (g.BlendEnabled)
+                    return CompositingMode.SourceOver;
+                return CompositingMode.SourceCopy;
             }
             set
             {
-                throw new NotImplementedException();
+                g.BlendEnabled = value == CompositingMode.SourceOver;
             }
         }
 
         public CompositingQuality CompositingQuality
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return CompositingQuality.Default; }
+            set { }
         }
 
         public float DpiX
         {
-            get { throw new NotImplementedException(); }
+            get { return g.Dpi.X; }
         }
 
         public float DpiY
         {
-            get { throw new NotImplementedException(); }
+            get { return g.Dpi.Y; }
         }
 
         public InterpolationMode InterpolationMode
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return InterpolationMode.Bilinear; }
+            set { }
         }
 
         public bool IsClipEmpty
@@ -96,50 +86,26 @@ namespace GLTestApp
 
         public float PageScale
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return 1.0f; }
+            set { }
         }
 
         public GraphicsUnit PageUnit
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return GraphicsUnit.Pixel; }
+            set { }
         }
 
         public PixelOffsetMode PixelOffsetMode
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return PixelOffsetMode.None; }
+            set { }            
         }
 
         public Point RenderingOrigin
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return Point.Empty; }
+            set { }
         }
 
         public SmoothingMode SmoothingMode
@@ -377,9 +343,37 @@ namespace GLTestApp
             throw new NotImplementedException();
         }
 
+        static Dictionary<Image, GLTexture> _cachedTextures = new Dictionary<Image, GLTexture>();
+
+        private static GLTexture GetCachedTexture(Image image)
+        {
+            GLTexture texture = null;
+            if (_cachedTextures.TryGetValue(image, out texture))
+            {
+                return texture;
+            }
+            else
+            {
+                using (Bitmap bitmap = new Bitmap(NextPow2(image.Size.Width), NextPow2(image.Size.Height)))
+                {
+                    using (Graphics g = Graphics.FromImage(bitmap))
+                    {
+                        g.DrawImageUnscaled(image, Point.Empty);
+                    }
+                    texture = new GLTexture(bitmap, image.Size.Width, image.Size.Height);
+                    _cachedTextures.Add(image, texture);
+                    return texture;
+                }
+            }
+        }
+
         public void DrawImage(Image image, Point point)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+            var texture = GetCachedTexture(image);
+            texture.Draw(point);
+            g.Texture2DEnabled = false;
         }
 
         public void DrawImage(Image image, Point[] destPoints)
@@ -389,7 +383,11 @@ namespace GLTestApp
 
         public void DrawImage(Image image, PointF point)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+            var texture = GetCachedTexture(image);
+            texture.Draw(point);
+            g.Texture2DEnabled = false;
         }
 
         public void DrawImage(Image image, PointF[] destPoints)
@@ -409,12 +407,12 @@ namespace GLTestApp
 
         public void DrawImage(Image image, float x, float y)
         {
-            throw new NotImplementedException();
+            DrawImage(image, new PointF(x, y));
         }
 
         public void DrawImage(Image image, int x, int y)
         {
-            throw new NotImplementedException();
+            DrawImage(image, new Point(x, y));
         }
 
         public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit)
@@ -439,7 +437,7 @@ namespace GLTestApp
 
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
-            throw new NotImplementedException();
+            DrawImage(image, new RectangleF(x, y, width, height));
         }
 
         public void DrawImage(Image image, float x, float y, RectangleF srcRect, GraphicsUnit srcUnit)
@@ -449,7 +447,7 @@ namespace GLTestApp
 
         public void DrawImage(Image image, int x, int y, int width, int height)
         {
-            throw new NotImplementedException();
+            DrawImage(image, new Rectangle(x, y, width, height));
         }
 
         public void DrawImage(Image image, int x, int y, Rectangle srcRect, GraphicsUnit srcUnit)
@@ -549,7 +547,8 @@ namespace GLTestApp
 
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.DrawLine(pt1, pt2);
         }
 
         public void DrawLine(Pen pen, PointF pt1, PointF pt2)
@@ -570,7 +569,8 @@ namespace GLTestApp
 
         public void DrawLines(Pen pen, Point[] points)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.DrawLines(points);
         }
 
         public void DrawLines(Pen pen, PointF[] points)
@@ -641,19 +641,20 @@ namespace GLTestApp
 
         static GLTexture _fontTexture;
 
-        public static void GdiToTexture(GLTexture texture, Size size, Action<Graphics> draw)
+        public static void GdiToTexture(GLTexture texture, Size originalSize, Action<Graphics> draw)
         {
-            using (Bitmap bitmap = new Bitmap(size.Width, size.Height))
+            Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
+            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
                     draw(g);
                 }
-                texture.Update(bitmap);
+                texture.Update(bitmap, originalSize.Width, originalSize.Height);
             }
         }
 
-        private static int nextPow2(int n)
+        private static int NextPow2(int n)
         {
             int x = 2;
             while (x < n)
@@ -669,11 +670,9 @@ namespace GLTestApp
             if (_fontTexture == null)
                 _fontTexture = new GLTexture();
 
-            Size size = TextRenderer.MeasureText(s, font);
-            size.Width = nextPow2(size.Width);
-            size.Height = nextPow2(size.Height);
-
-            GdiToTexture(_fontTexture, size, gdi => gdi.DrawString(s, font, brush, PointF.Empty));
+            Size originalSize = TextRenderer.MeasureText(s, font);
+            
+            GdiToTexture(_fontTexture, originalSize, gdi => gdi.DrawString(s, font, brush, PointF.Empty));
             
             _fontTexture.Draw(point);
 
@@ -1172,7 +1171,7 @@ namespace GLTestApp
 
         public void ResetTransform()
         {
-            throw new NotImplementedException();
+            g.Identity();
         }
 
         public void Restore(GraphicsState gstate)
@@ -1182,7 +1181,7 @@ namespace GLTestApp
 
         public void RotateTransform(float angle)
         {
-            throw new NotImplementedException();
+            g.Rotate(angle);
         }
 
         public void RotateTransform(float angle, MatrixOrder order)
@@ -1197,7 +1196,7 @@ namespace GLTestApp
 
         public void ScaleTransform(float sx, float sy)
         {
-            throw new NotImplementedException();
+            g.Scale(sx, sy);
         }
 
         public void ScaleTransform(float sx, float sy, MatrixOrder order)
@@ -1272,7 +1271,7 @@ namespace GLTestApp
 
         public void TranslateTransform(float dx, float dy)
         {
-            throw new NotImplementedException();
+            g.Translate(dx, dy);
         }
 
         public void TranslateTransform(float dx, float dy, MatrixOrder order)

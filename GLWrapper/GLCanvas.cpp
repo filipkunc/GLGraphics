@@ -128,6 +128,24 @@ namespace GLWrapper
 	{
 		_size = value;
 	}
+
+	PointF GLCanvas::Dpi::get()
+	{
+		return _dpi;
+	}
+
+	void GLCanvas::Dpi::set(PointF value)
+	{
+		_dpi = value;
+	}
+
+	void GLCanvas::DrawLine(Point a, Point b)
+	{
+		glBegin(GL_LINES);
+		glVertex2i(a.X, a.Y);
+		glVertex2i(b.X, b.Y);
+		glEnd();
+	}
 	
 	void GLCanvas::DrawLine(PointF a, PointF b)
 	{
@@ -136,6 +154,16 @@ namespace GLWrapper
 		glVertex2f(b.X, b.Y);
 		glEnd();
 	}
+
+	void GLCanvas::DrawLines(array<Point> ^points)
+	{
+		pin_ptr<Point> vertexPtr = &points[0];
+		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_INT, sizeof(Point), vertexPtr);
+		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}	
 
 	void GLCanvas::DrawLines(array<PointF> ^points)
 	{
@@ -177,17 +205,26 @@ namespace GLWrapper
 		glVertex2f(rect.X + rect.Width, rect.Y + rect.Height + 1.0f);
 		glVertex2f(rect.X, rect.Y + rect.Height);
 		glEnd();		
-	}	
+	}
 
-	void GLCanvas::DrawPixels(Bitmap ^bitmap)
+	void GLCanvas::Identity()
 	{
-		bitmap->RotateFlip(System::Drawing::RotateFlipType::RotateNoneFlipY);
+		glPopMatrix();
+		glPushMatrix();
+	}
 
-		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
-        BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
+	void GLCanvas::Translate(float dx, float dy)
+	{
+		glTranslatef(dx, dy, 0.0f);
+	}
 
-		glDrawPixels(rect.Width, rect.Height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data->Scan0.ToPointer());
-
-		bitmap->UnlockBits(data);		
+	void GLCanvas::Rotate(float degrees)
+	{
+		glRotatef(degrees, 0.0f, 0.0f, 1.0f);
+	}
+	
+	void GLCanvas::Scale(float sx, float sy)
+	{
+		glScalef(sx, sy, 1.0f);
 	}
 }

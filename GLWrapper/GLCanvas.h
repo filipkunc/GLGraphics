@@ -12,6 +12,7 @@ namespace GLWrapper
 		float _pointSize;
 		Color _currentColor;
 		Size _size;
+		PointF _dpi;
 	public:
 		GLCanvas(Color backColor);
 
@@ -22,10 +23,14 @@ namespace GLWrapper
 		property float PointSize { float get(); void set(float value); }
 		property Color CurrentColor { Color get(); void set(Color value); }
 		property Size CanvasSize { Size get(); void set(Size value); }
+		property PointF Dpi { PointF get(); void set(PointF value); }
 		
 		void Clear(Color color);
 
+		void DrawLine(Point a, Point b);
 		void DrawLine(PointF a, PointF b);
+
+		void DrawLines(array<Point> ^points);
 		void DrawLines(array<PointF> ^points);
 
 		void DrawPoint(PointF a);
@@ -34,6 +39,9 @@ namespace GLWrapper
 		void DrawRectangle(RectangleF rect);
 		void FillRectangle(RectangleF rect);
 
-		void DrawPixels(Bitmap ^bitmap);
+		void Identity();
+		void Translate(float dx, float dy);
+		void Rotate(float degrees);
+		void Scale(float sx, float sy);
 	};
 }

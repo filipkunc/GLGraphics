@@ -26,11 +26,10 @@ namespace GLWrapper
 		void BeginGL();
 		void EndGL();
 		void ReshapeFlippedOrtho2D();
-		void DrawGL();		
+		void DrawGL(PaintEventArgs ^paintArgs);		
+		void PaintGL(PaintEventArgs ^paintArgs);
 	public:
 		GLView(void);
-
-		void PaintGL();
 
 		event EventHandler<CanvasEventArgs ^> ^PaintCanvas;
 		

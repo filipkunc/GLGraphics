@@ -68,7 +68,7 @@ namespace GLWrapper
 		if (!glEnabled)
 			UserControl::OnPaint(e);
 		else
-			PaintGL();
+			PaintGL(e);
 	}
 
 	void GLView::OnPaintBackground(PaintEventArgs ^e)
@@ -79,13 +79,13 @@ namespace GLWrapper
 
 	#pragma endregion
 
-	void GLView::PaintGL()
+	void GLView::PaintGL(PaintEventArgs ^paintArgs)
 	{
 		if (!deviceContext || !glRenderingContext)
 			return;
 
 		BeginGL();
-		DrawGL();
+		DrawGL(paintArgs);
 		SwapBuffers(deviceContext);
 		EndGL();
 	}
@@ -169,7 +169,7 @@ namespace GLWrapper
 		glTranslatef(viewOffset.X, viewOffset.Y, 0.0f);
 	}
 
-	void GLView::DrawGL()
+	void GLView::DrawGL(PaintEventArgs ^paintArgs)
 	{
 		ReshapeFlippedOrtho2D();
 
@@ -177,8 +177,13 @@ namespace GLWrapper
 			glCanvas = gcnew GLCanvas(this->BackColor);
 		
 		glCanvas->CanvasSize = this->ClientSize;
+		glCanvas->Dpi = PointF(paintArgs->Graphics->DpiX, paintArgs->Graphics->DpiY);
 
+		glPushMatrix();
+		
 		CanvasEventArgs ^args = gcnew CanvasEventArgs(glCanvas);
-		PaintCanvas(this, args);		
+		PaintCanvas(this, args);
+
+		glPopMatrix();
 	}
 }

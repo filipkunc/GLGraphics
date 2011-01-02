@@ -53,7 +53,7 @@ namespace GLWrapper
 		this->textureID = textureID;
 	}
 
-	GLTexture::GLTexture(Bitmap ^bitmap)
+	GLTexture::GLTexture(Bitmap ^bitmap, int originalWidth, int originalHeight)
 	{
 		unsigned int textureID = 0;
 
@@ -61,10 +61,10 @@ namespace GLWrapper
 		glGenTextures(1, &textureID);
 		this->textureID = textureID;
 		
-		Update(bitmap);		
+		Update(bitmap, originalWidth, originalHeight);		
 	}
 	
-	void GLTexture::Update(Bitmap ^bitmap)
+	void GLTexture::Update(Bitmap ^bitmap, int originalWidth, int originalHeight)
 	{
 		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
         BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
@@ -75,30 +75,68 @@ namespace GLWrapper
 
 		width = rect.Width;
 		height = rect.Height;
+
+		this->originalWidth = originalWidth;
+		this->originalHeight = originalHeight;
 	}
 
-	void GLTexture::Draw(PointF position)
+	void GLTexture::Draw(System::Drawing::Rectangle rect)
 	{
-		const float x = position.X;
-		const float y = position.Y;
+		float textureX = (float)rect.Width / (float)width;
+		float textureY = (float)rect.Height / (float)height;
+
+		const GLIntVertex vertices[] = 
+		{
+			{ rect.X,				rect.Y,						0,			0, }, // 0
+			{ rect.X + rect.Width,	rect.Y,						textureX,	0, }, // 1
+			{ rect.X,				rect.Y + rect.Height,		0,			textureY, }, // 2
+			{ rect.X + rect.Width,	rect.Y + rect.Height,		textureX,	textureY, }, // 3
+		};
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_INT, sizeof(GLIntVertex), &vertices->x);	
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(GLIntVertex), &vertices->s);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);	
+	}
+
+	void GLTexture::Draw(RectangleF rect)
+	{
+		float textureX = (float)rect.Width / (float)width;
+		float textureY = (float)rect.Height / (float)height;
 
 		const GLVertex vertices[] = 
 		{
-			{ x,			y,				0, 0, }, // 0
-			{ x + width,	y,				1, 0, }, // 1
-			{ x,			y + height,		0, 1, }, // 2
-			{ x + width,	y + height,		1, 1, }, // 3
-		};	
+			{ rect.X,				rect.Y,						0,			0, }, // 0
+			{ rect.X + rect.Width,	rect.Y,						textureX,	0, }, // 1
+			{ rect.X,				rect.Y + rect.Height,		0,			textureY, }, // 2
+			{ rect.X + rect.Width,	rect.Y + rect.Height,		textureX,	textureY, }, // 3
+		};
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &vertices->x);	
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_SHORT, sizeof(GLVertex), &vertices->s);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &vertices->s);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);	
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	void GLTexture::Draw(Point position)
+	{
+		Draw(System::Drawing::Rectangle(position, Size(originalWidth, originalHeight)));
+	}
+
+	void GLTexture::Draw(PointF position)
+	{
+		Draw(RectangleF(position, SizeF(originalWidth, originalHeight)));
 	}
 }
