@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}</ProjectGuid>
+    <ProjectGuid>{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GraphicsInterface</RootNamespace>
-    <AssemblyName>GraphicsInterface</AssemblyName>
+    <RootNamespace>ManyGraphics</RootNamespace>
+    <AssemblyName>ManyGraphics</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -36,6 +36,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -46,8 +47,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GraphicsInterface.cs" />
+    <Compile Include="GDIGraphics.cs" />
+    <Compile Include="GLGraphics.cs" />
+    <Compile Include="IGraphics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GLWrapper\GLWrapper.vcproj">
+      <Project>{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}</Project>
+      <Name>GLWrapper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

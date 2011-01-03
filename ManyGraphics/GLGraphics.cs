@@ -2,143 +2,184 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using GraphicsInterface;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using GLWrapper;
+using System.Windows.Forms;
 
-namespace GLTestApp
+namespace ManyGraphics
 {
-    public class GDIGraphics : IGraphics
+    public class GLGraphics : IGraphics
     {
-        Graphics g;
+        GLCanvas g;
 
-        public GDIGraphics(Graphics graphics)
+        public GLGraphics(GLCanvas canvas)
         {
-            g = graphics;
+            g = canvas;
         }
 
         public Region Clip
         {
-            get { return g.Clip; }
-            set { g.Clip = value; }
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public RectangleF ClipBounds
         {
-            get { return g.ClipBounds; }
+            get { throw new NotImplementedException(); }
         }
 
         public CompositingMode CompositingMode
         {
-            get { return g.CompositingMode; }
-            set { g.CompositingMode = value; }
+            get
+            {
+                if (g.BlendEnabled)
+                    return CompositingMode.SourceOver;
+                return CompositingMode.SourceCopy;
+            }
+            set
+            {
+                g.BlendEnabled = value == CompositingMode.SourceOver;
+            }
         }
 
         public CompositingQuality CompositingQuality
         {
-            get { return g.CompositingQuality; }
-            set { g.CompositingQuality = value; }
+            get { return CompositingQuality.Default; }
+            set { }
         }
 
         public float DpiX
         {
-            get { return g.DpiX; }
+            get { return g.Dpi.X; }
         }
 
         public float DpiY
         {
-            get { return g.DpiY; }
+            get { return g.Dpi.Y; }
         }
 
         public InterpolationMode InterpolationMode
         {
-            get { return g.InterpolationMode; }
-            set { g.InterpolationMode = value; }
+            get { return InterpolationMode.Bilinear; }
+            set { }
         }
 
         public bool IsClipEmpty
         {
-            get { return g.IsClipEmpty; }
+            get { throw new NotImplementedException(); }
         }
 
         public bool IsVisibleClipEmpty
         {
-            get { return g.IsVisibleClipEmpty; }
+            get { throw new NotImplementedException(); }
         }
 
         public float PageScale
         {
-            get { return g.PageScale; }
-            set { g.PageScale = value; }
+            get { return 1.0f; }
+            set { }
         }
 
         public GraphicsUnit PageUnit
         {
-            get { return g.PageUnit; }
-            set { g.PageUnit = value; }
+            get { return GraphicsUnit.Pixel; }
+            set { }
         }
 
         public PixelOffsetMode PixelOffsetMode
         {
-            get { return g.PixelOffsetMode; }
-            set { g.PixelOffsetMode = value; }
+            get { return PixelOffsetMode.None; }
+            set { }            
         }
 
         public Point RenderingOrigin
         {
-            get { return g.RenderingOrigin; }
-            set { g.RenderingOrigin = value; }
+            get { return Point.Empty; }
+            set { }
         }
 
         public SmoothingMode SmoothingMode
         {
-            get { return g.SmoothingMode; }
-            set { g.SmoothingMode = value; }
+            get
+            {
+                if (g.AntialiasingEnabled)
+                    return SmoothingMode.AntiAlias;
+                return SmoothingMode.None;
+            }
+            set
+            {
+                g.AntialiasingEnabled = value == SmoothingMode.AntiAlias;
+            }
         }
 
         public int TextContrast
         {
-            get { return g.TextContrast; }
-            set { g.TextContrast = value; }
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public TextRenderingHint TextRenderingHint
         {
-            get { return g.TextRenderingHint; }
-            set { g.TextRenderingHint = value; }
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public Matrix Transform
         {
-            get { return g.Transform; }
-            set { g.Transform = value; }
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public RectangleF VisibleClipBounds
         {
-            get { return g.VisibleClipBounds; }
+            get { throw new NotImplementedException(); }
         }
 
         public void AddMetafileComment(byte[] data)
         {
-            g.AddMetafileComment(data);
+            throw new NotImplementedException();
         }
 
         public GraphicsContainer BeginContainer()
         {
-            return g.BeginContainer();
+            throw new NotImplementedException();
         }
 
         public GraphicsContainer BeginContainer(Rectangle dstrect, Rectangle srcrect, GraphicsUnit unit)
         {
-            return g.BeginContainer(dstrect, srcrect, unit);
+            throw new NotImplementedException();
         }
 
         public GraphicsContainer BeginContainer(RectangleF dstrect, RectangleF srcrect, GraphicsUnit unit)
         {
-            return g.BeginContainer(dstrect, srcrect, unit);
+            throw new NotImplementedException();
         }
 
         public void Clear(Color color)
@@ -148,1022 +189,1093 @@ namespace GLTestApp
 
         public void CopyFromScreen(Point upperLeftSource, Point upperLeftDestination, Size blockRegionSize)
         {
-            g.CopyFromScreen(upperLeftSource, upperLeftDestination, blockRegionSize);
+            throw new NotImplementedException();
         }
 
         public void CopyFromScreen(int sourceX, int sourceY, int destinationX, int destinationY, Size blockRegionSize)
         {
-            g.CopyFromScreen(sourceX, sourceY, destinationX, destinationY, blockRegionSize);
+            throw new NotImplementedException();
         }
 
         public void CopyFromScreen(int sourceX, int sourceY, int destinationX, int destinationY, Size blockRegionSize, CopyPixelOperation copyPixelOperation)
         {
-            g.CopyFromScreen(sourceX, sourceY, destinationX, destinationY, blockRegionSize, copyPixelOperation);
+            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            g.Dispose();
+            throw new NotImplementedException();
         }
 
         public void DrawArc(Pen pen, Rectangle rect, float startAngle, float sweepAngle)
         {
-            g.DrawArc(pen, rect, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawArc(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            g.DrawArc(pen, rect, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawArc(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
         {
-            g.DrawArc(pen, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawArc(Pen pen, int x, int y, int width, int height, int startAngle, int sweepAngle)
         {
-            g.DrawArc(pen, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawBezier(Pen pen, Point pt1, Point pt2, Point pt3, Point pt4)
         {
-            g.DrawBezier(pen, pt1, pt2, pt3, pt4);
+            throw new NotImplementedException();
         }
 
         public void DrawBezier(Pen pen, PointF pt1, PointF pt2, PointF pt3, PointF pt4)
         {
-            g.DrawBezier(pen, pt1, pt2, pt3, pt4);
+            throw new NotImplementedException();
         }
 
         public void DrawBezier(Pen pen, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
         {
-            g.DrawBezier(pen, x1, y1, x2, y2, x3, y3, x4, y4);
+            throw new NotImplementedException();
         }
 
         public void DrawBeziers(Pen pen, Point[] points)
         {
-            g.DrawBeziers(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawBeziers(Pen pen, PointF[] points)
         {
-            g.DrawBeziers(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawClosedCurve(Pen pen, Point[] points)
         {
-            g.DrawClosedCurve(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawClosedCurve(Pen pen, PointF[] points)
         {
-            g.DrawClosedCurve(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawClosedCurve(Pen pen, Point[] points, float tension, FillMode fillmode)
         {
-            g.DrawClosedCurve(pen, points, tension, fillmode);
+            throw new NotImplementedException();
         }
 
         public void DrawClosedCurve(Pen pen, PointF[] points, float tension, FillMode fillmode)
         {
-            g.DrawClosedCurve(pen, points, tension, fillmode);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, Point[] points)
         {
-            g.DrawCurve(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, PointF[] points)
         {
-            g.DrawCurve(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, Point[] points, float tension)
         {
-            g.DrawCurve(pen, points, tension);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, PointF[] points, float tension)
         {
-            g.DrawCurve(pen, points, tension);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, PointF[] points, int offset, int numberOfSegments)
         {
-            g.DrawCurve(pen, points, offset, numberOfSegments);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, Point[] points, int offset, int numberOfSegments, float tension)
         {
-            g.DrawCurve(pen, points, offset, numberOfSegments, tension);
+            throw new NotImplementedException();
         }
 
         public void DrawCurve(Pen pen, PointF[] points, int offset, int numberOfSegments, float tension)
         {
-            g.DrawCurve(pen, points, offset, numberOfSegments, tension);
+            throw new NotImplementedException();
         }
 
         public void DrawEllipse(Pen pen, Rectangle rect)
         {
-            g.DrawEllipse(pen, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawEllipse(Pen pen, RectangleF rect)
         {
-            g.DrawEllipse(pen, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawEllipse(Pen pen, float x, float y, float width, float height)
         {
-            g.DrawEllipse(pen, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void DrawEllipse(Pen pen, int x, int y, int width, int height)
         {
-            g.DrawEllipse(pen, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void DrawIcon(Icon icon, Rectangle targetRect)
         {
-            g.DrawIcon(icon, targetRect);
+            throw new NotImplementedException();
         }
 
         public void DrawIcon(Icon icon, int x, int y)
         {
-            g.DrawIcon(icon, x, y);
+            throw new NotImplementedException();
         }
 
         public void DrawIconUnstretched(Icon icon, Rectangle targetRect)
         {
-            g.DrawIconUnstretched(icon, targetRect);
+            throw new NotImplementedException();
+        }
+
+        static Dictionary<Image, GLTexture> _cachedTextures = new Dictionary<Image, GLTexture>();
+
+        private static GLTexture GetCachedTexture(Image image)
+        {
+            GLTexture texture = null;
+            if (_cachedTextures.TryGetValue(image, out texture))
+            {
+                return texture;
+            }
+            else
+            {
+                using (Bitmap bitmap = new Bitmap(NextPow2(image.Size.Width), NextPow2(image.Size.Height)))
+                {
+                    using (Graphics g = Graphics.FromImage(bitmap))
+                    {
+                        g.DrawImageUnscaled(image, Point.Empty);
+                    }
+                    texture = new GLTexture(bitmap, image.Size.Width, image.Size.Height);
+                    _cachedTextures.Add(image, texture);
+                    return texture;
+                }
+            }
         }
 
         public void DrawImage(Image image, Point point)
         {
-            g.DrawImage(image, point);
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+            var texture = GetCachedTexture(image);
+            texture.Draw(point);
+            g.Texture2DEnabled = false;
         }
 
         public void DrawImage(Image image, Point[] destPoints)
         {
-            g.DrawImage(image, destPoints);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, PointF point)
         {
-            g.DrawImage(image, point);
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+            var texture = GetCachedTexture(image);
+            texture.Draw(point);
+            g.Texture2DEnabled = false;
         }
 
         public void DrawImage(Image image, PointF[] destPoints)
         {
-            g.DrawImage(image, destPoints);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle rect)
         {
-            g.DrawImage(image, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, RectangleF rect)
         {
-            g.DrawImage(image, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, float x, float y)
         {
-            g.DrawImage(image, x, y);
+            DrawImage(image, new PointF(x, y));
         }
 
         public void DrawImage(Image image, int x, int y)
         {
-            g.DrawImage(image, x, y);
+            DrawImage(image, new Point(x, y));
         }
 
         public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, Rectangle srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destRect, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, RectangleF destRect, RectangleF srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destRect, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
-            g.DrawImage(image, x, y, width, height);
+            DrawImage(image, new RectangleF(x, y, width, height));
         }
 
         public void DrawImage(Image image, float x, float y, RectangleF srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, x, y, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, int x, int y, int width, int height)
         {
-            g.DrawImage(image, x, y, width, height);
+            DrawImage(image, new Rectangle(x, y, width, height));
         }
 
         public void DrawImage(Image image, int x, int y, Rectangle srcRect, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, x, y, srcRect, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, Graphics.DrawImageAbort callback)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr, callback);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, Graphics.DrawImageAbort callback)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr, callback);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, Graphics.DrawImageAbort callback, int callbackData)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, Graphics.DrawImageAbort callback, int callbackData)
         {
-            g.DrawImage(image, destPoints, srcRect, srcUnit, imageAttr, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttrs);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttr)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, Graphics.DrawImageAbort callback)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttrs, callback);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttr, Graphics.DrawImageAbort callback)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttr, callback);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, Graphics.DrawImageAbort callback, IntPtr callbackData)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttrs, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, Graphics.DrawImageAbort callback, IntPtr callbackData)
         {
-            g.DrawImage(image, destRect, srcX, srcY, srcWidth, srcHeight, srcUnit, imageAttrs, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void DrawImageUnscaled(Image image, Rectangle rect)
         {
-            g.DrawImageUnscaled(image, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawImageUnscaled(Image image, int x, int y)
         {
-            g.DrawImageUnscaled(image, x, y);
+            throw new NotImplementedException();
         }
 
         public void DrawImageUnscaled(Image image, int x, int y, int width, int height)
         {
-            g.DrawImageUnscaled(image, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void DrawImageUnscaledAndClipped(Image image, Rectangle rect)
         {
-            g.DrawImageUnscaledAndClipped(image, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
-            g.DrawLine(pen, pt1, pt2);
+            g.CurrentColor = pen.Color;
+            g.DrawLine(pt1, pt2);
         }
 
         public void DrawLine(Pen pen, PointF pt1, PointF pt2)
         {
-            g.DrawLine(pen, pt1, pt2);
+            g.CurrentColor = pen.Color;
+            g.DrawLine(pt1, pt2);
         }
 
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
         {
-            g.DrawLine(pen, x1, y1, x2, y2);
+            this.DrawLine(pen, new PointF(x1, y1), new PointF(x2, y2));
         }
 
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
         {
-            g.DrawLine(pen, x1, y1, x2, y2);
+            this.DrawLine(pen, new Point(x1, y1), new Point(x2, y2));
         }
 
         public void DrawLines(Pen pen, Point[] points)
         {
-            g.DrawLines(pen, points);
+            g.CurrentColor = pen.Color;
+            g.DrawLines(points);
         }
 
         public void DrawLines(Pen pen, PointF[] points)
         {
-            g.DrawLines(pen, points);
+            g.CurrentColor = pen.Color;
+            g.DrawLines(points);
         }
 
         public void DrawPath(Pen pen, GraphicsPath path)
         {
-            g.DrawPath(pen, path);
+            throw new NotImplementedException();
         }
 
         public void DrawPie(Pen pen, Rectangle rect, float startAngle, float sweepAngle)
         {
-            g.DrawPie(pen, rect, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawPie(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            g.DrawPie(pen, rect, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawPie(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
         {
-            g.DrawPie(pen, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawPie(Pen pen, int x, int y, int width, int height, int startAngle, int sweepAngle)
         {
-            g.DrawPie(pen, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void DrawPolygon(Pen pen, Point[] points)
         {
-            g.DrawPolygon(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawPolygon(Pen pen, PointF[] points)
         {
-            g.DrawPolygon(pen, points);
+            throw new NotImplementedException();
         }
 
         public void DrawRectangle(Pen pen, Rectangle rect)
         {
-            g.DrawRectangle(pen, rect);
+            throw new NotImplementedException();
         }
 
         public void DrawRectangle(Pen pen, float x, float y, float width, float height)
         {
-            g.DrawRectangle(pen, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void DrawRectangle(Pen pen, int x, int y, int width, int height)
         {
-            g.DrawRectangle(pen, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void DrawRectangles(Pen pen, Rectangle[] rects)
         {
-            g.DrawRectangles(pen, rects);
+            throw new NotImplementedException();
         }
 
         public void DrawRectangles(Pen pen, RectangleF[] rects)
         {
-            g.DrawRectangles(pen, rects);
+            throw new NotImplementedException();
+        }
+
+        static GLTexture _fontTexture;
+
+        public static void GdiToTexture(GLTexture texture, Size originalSize, Action<Graphics> draw)
+        {
+            Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
+            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    draw(g);
+                }
+                texture.Update(bitmap, originalSize.Width, originalSize.Height);
+            }
+        }
+
+        private static int NextPow2(int n)
+        {
+            int x = 2;
+            while (x < n)
+                x <<= 1;
+            return x;
         }
 
         public void DrawString(string s, Font font, Brush brush, PointF point)
         {
-            g.DrawString(s, font, brush, point);
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+
+            if (_fontTexture == null)
+                _fontTexture = new GLTexture();
+
+            Size originalSize = TextRenderer.MeasureText(s, font);
+            
+            GdiToTexture(_fontTexture, originalSize, gdi => gdi.DrawString(s, font, brush, PointF.Empty));
+            
+            _fontTexture.Draw(point);
+
+            g.Texture2DEnabled = false;
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle)
         {
-            g.DrawString(s, font, brush, layoutRectangle);
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y)
         {
-            g.DrawString(s, font, brush, x, y);
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, PointF point, StringFormat format)
         {
-            g.DrawString(s, font, brush, point, format);
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
         {
-            g.DrawString(s, font, brush, layoutRectangle, format);
+            throw new NotImplementedException();
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y, StringFormat format)
         {
-            g.DrawString(s, font, brush, x, y, format);
+            throw new NotImplementedException();
         }
 
         public void EndContainer(GraphicsContainer container)
         {
-            g.EndContainer(container);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destRect, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destRect, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destRect, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destRect, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoint, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoints, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destRect, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destRect, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, srcUnit, callback);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Rectangle srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, RectangleF srcRect, GraphicsUnit srcUnit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, srcUnit, callback, callbackData);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point destPoint, Rectangle srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Point[] destPoints, Rectangle srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF destPoint, RectangleF srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoint, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, PointF[] destPoints, RectangleF srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destPoints, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, Rectangle destRect, Rectangle srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void EnumerateMetafile(Metafile metafile, RectangleF destRect, RectangleF srcRect, GraphicsUnit unit, Graphics.EnumerateMetafileProc callback, IntPtr callbackData, ImageAttributes imageAttr)
         {
-            g.EnumerateMetafile(metafile, destRect, srcRect, unit, callback, callbackData, imageAttr);
+            throw new NotImplementedException();
         }
 
         public void ExcludeClip(Rectangle rect)
         {
-            g.ExcludeClip(rect);
+            throw new NotImplementedException();
         }
 
         public void ExcludeClip(Region region)
         {
-            g.ExcludeClip(region);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, Point[] points)
         {
-            g.FillClosedCurve(brush, points);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, PointF[] points)
         {
-            g.FillClosedCurve(brush, points);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, Point[] points, FillMode fillmode)
         {
-            g.FillClosedCurve(brush, points, fillmode);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, PointF[] points, FillMode fillmode)
         {
-            g.FillClosedCurve(brush, points, fillmode);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, Point[] points, FillMode fillmode, float tension)
         {
-            g.FillClosedCurve(brush, points, fillmode, tension);
+            throw new NotImplementedException();
         }
 
         public void FillClosedCurve(Brush brush, PointF[] points, FillMode fillmode, float tension)
         {
-            g.FillClosedCurve(brush, points, fillmode, tension);
+            throw new NotImplementedException();
         }
 
         public void FillEllipse(Brush brush, Rectangle rect)
         {
-            g.FillEllipse(brush, rect);
+            throw new NotImplementedException();
         }
 
         public void FillEllipse(Brush brush, RectangleF rect)
         {
-            g.FillEllipse(brush, rect);
+            throw new NotImplementedException();
         }
 
         public void FillEllipse(Brush brush, float x, float y, float width, float height)
         {
-            g.FillEllipse(brush, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void FillEllipse(Brush brush, int x, int y, int width, int height)
         {
-            g.FillEllipse(brush, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void FillPath(Brush brush, GraphicsPath path)
         {
-            g.FillPath(brush, path);
+            throw new NotImplementedException();
         }
 
         public void FillPie(Brush brush, Rectangle rect, float startAngle, float sweepAngle)
         {
-            g.FillPie(brush, rect, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void FillPie(Brush brush, float x, float y, float width, float height, float startAngle, float sweepAngle)
         {
-            g.FillPie(brush, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void FillPie(Brush brush, int x, int y, int width, int height, int startAngle, int sweepAngle)
         {
-            g.FillPie(brush, x, y, width, height, startAngle, sweepAngle);
+            throw new NotImplementedException();
         }
 
         public void FillPolygon(Brush brush, Point[] points)
         {
-            g.FillPolygon(brush, points);
+            throw new NotImplementedException();
         }
 
         public void FillPolygon(Brush brush, PointF[] points)
         {
-            g.FillPolygon(brush, points);
+            throw new NotImplementedException();
         }
 
         public void FillPolygon(Brush brush, Point[] points, FillMode fillMode)
         {
-            g.FillPolygon(brush, points, fillMode);
+            throw new NotImplementedException();
         }
 
         public void FillPolygon(Brush brush, PointF[] points, FillMode fillMode)
         {
-            g.FillPolygon(brush, points, fillMode);
+            throw new NotImplementedException();
         }
 
         public void FillRectangle(Brush brush, Rectangle rect)
         {
-            g.FillRectangle(brush, rect);
+            throw new NotImplementedException();
         }
 
         public void FillRectangle(Brush brush, RectangleF rect)
         {
-            g.FillRectangle(brush, rect);
+            throw new NotImplementedException();
         }
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
         {
-            g.FillRectangle(brush, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void FillRectangle(Brush brush, int x, int y, int width, int height)
         {
-            g.FillRectangle(brush, x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public void FillRectangles(Brush brush, Rectangle[] rects)
         {
-            g.FillRectangles(brush, rects);
+            throw new NotImplementedException();
         }
 
         public void FillRectangles(Brush brush, RectangleF[] rects)
         {
-            g.FillRectangles(brush, rects);
+            throw new NotImplementedException();
         }
 
         public void FillRegion(Brush brush, Region region)
         {
-            g.FillRegion(brush, region);
+            throw new NotImplementedException();
         }
 
         public void Flush()
         {
-            g.Flush();
+            throw new NotImplementedException();
         }
 
         public void Flush(FlushIntention intention)
         {
-            g.Flush(intention);
+            throw new NotImplementedException();
         }
 
         public object GetContextInfo()
         {
-            return g.GetContextInfo();
+            throw new NotImplementedException();
         }
 
         public IntPtr GetHdc()
         {
-            return g.GetHdc();
+            throw new NotImplementedException();
         }
 
         public Color GetNearestColor(Color color)
         {
-            return g.GetNearestColor(color);
+            throw new NotImplementedException();
         }
 
         public void IntersectClip(Rectangle rect)
         {
-            g.IntersectClip(rect);
+            throw new NotImplementedException();
         }
 
         public void IntersectClip(RectangleF rect)
         {
-            g.IntersectClip(rect);
+            throw new NotImplementedException();
         }
 
         public void IntersectClip(Region region)
         {
-            g.IntersectClip(region);            
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(Point point)
         {
-            return g.IsVisible(point);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(PointF point)
         {
-            return g.IsVisible(point);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(Rectangle rect)
         {
-            return g.IsVisible(rect);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(RectangleF rect)
         {
-            return g.IsVisible(rect);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(float x, float y)
         {
-            return g.IsVisible(x, y);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(int x, int y)
         {
-            return g.IsVisible(x, y);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(float x, float y, float width, float height)
         {
-            return g.IsVisible(x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public bool IsVisible(int x, int y, int width, int height)
         {
-            return g.IsVisible(x, y, width, height);
+            throw new NotImplementedException();
         }
 
         public Region[] MeasureCharacterRanges(string text, Font font, RectangleF layoutRect, StringFormat stringFormat)
         {
-            return g.MeasureCharacterRanges(text, font, layoutRect, stringFormat);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font)
         {
-            return g.MeasureString(text, font);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, int width)
         {
-            return g.MeasureString(text, font, width);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, SizeF layoutArea)
         {
-            return g.MeasureString(text, font, layoutArea);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, int width, StringFormat format)
         {
-            return g.MeasureString(text, font, width, format);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, PointF origin, StringFormat stringFormat)
         {
-            return g.MeasureString(text, font, origin, stringFormat);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, SizeF layoutArea, StringFormat stringFormat)
         {
-            return g.MeasureString(text, font, layoutArea, stringFormat);
+            throw new NotImplementedException();
         }
 
         public SizeF MeasureString(string text, Font font, SizeF layoutArea, StringFormat stringFormat, out int charactersFitted, out int linesFilled)
         {
-            return g.MeasureString(text, font, layoutArea, stringFormat, out charactersFitted, out linesFilled);
+            throw new NotImplementedException();
         }
 
         public void MultiplyTransform(Matrix matrix, MatrixOrder order)
         {
-            g.MultiplyTransform(matrix, order);
+            throw new NotImplementedException();
         }
 
         public void ReleaseHdc()
         {
-            g.ReleaseHdc();
+            throw new NotImplementedException();
         }
 
         public void ReleaseHdc(IntPtr hdc)
         {
-            g.ReleaseHdc(hdc);
+            throw new NotImplementedException();
         }
 
         public void ReleaseHdcInternal(IntPtr hdc)
         {
-            g.ReleaseHdcInternal(hdc);
+            throw new NotImplementedException();
         }
 
         public void ResetClip()
         {
-            g.ResetClip();
+            throw new NotImplementedException();
         }
 
         public void ResetTransform()
         {
-            g.ResetTransform();
+            g.Identity();
         }
 
         public void Restore(GraphicsState gstate)
         {
-            g.Restore(gstate);
+            throw new NotImplementedException();
         }
 
         public void RotateTransform(float angle)
         {
-            g.RotateTransform(angle);
+            g.Rotate(angle);
         }
 
         public void RotateTransform(float angle, MatrixOrder order)
         {
-            g.RotateTransform(angle, order);
+            throw new NotImplementedException();
         }
 
         public GraphicsState Save()
         {
-            return g.Save();
+            throw new NotImplementedException();
         }
 
         public void ScaleTransform(float sx, float sy)
         {
-            g.ScaleTransform(sx, sy);
+            g.Scale(sx, sy);
         }
 
         public void ScaleTransform(float sx, float sy, MatrixOrder order)
         {
-            g.ScaleTransform(sx, sy, order);
+            throw new NotImplementedException();
         }
 
         public void SetClip(Graphics g)
         {
-            this.g.SetClip(g);
+            throw new NotImplementedException();
         }
 
         public void SetClip(GraphicsPath path)
         {
-            g.SetClip(path);
+            throw new NotImplementedException();
         }
 
         public void SetClip(Rectangle rect)
         {
-            g.SetClip(rect);
+            throw new NotImplementedException();
         }
 
         public void SetClip(RectangleF rect)
         {
-            g.SetClip(rect);
+            throw new NotImplementedException();
         }
 
         public void SetClip(Graphics g, CombineMode combineMode)
         {
-            this.g.SetClip(g, combineMode);
+            throw new NotImplementedException();
         }
 
         public void SetClip(GraphicsPath path, CombineMode combineMode)
         {
-            g.SetClip(path, combineMode);
+            throw new NotImplementedException();
         }
 
         public void SetClip(Rectangle rect, CombineMode combineMode)
         {
-            g.SetClip(rect, combineMode);
+            throw new NotImplementedException();
         }
 
         public void SetClip(RectangleF rect, CombineMode combineMode)
         {
-            g.SetClip(rect, combineMode);
+            throw new NotImplementedException();
         }
 
         public void SetClip(Region region, CombineMode combineMode)
         {
-            g.SetClip(region, combineMode);
+            throw new NotImplementedException();
         }
 
         public void TransformPoints(CoordinateSpace destSpace, CoordinateSpace srcSpace, Point[] pts)
         {
-            g.TransformPoints(destSpace, srcSpace, pts);
+            throw new NotImplementedException();
         }
 
         public void TransformPoints(CoordinateSpace destSpace, CoordinateSpace srcSpace, PointF[] pts)
         {
-            g.TransformPoints(destSpace, srcSpace, pts);
+            throw new NotImplementedException();
         }
 
         public void TranslateClip(float dx, float dy)
         {
-            g.TranslateClip(dx, dy);
+            throw new NotImplementedException();
         }
 
         public void TranslateClip(int dx, int dy)
         {
-            g.TranslateClip(dx, dy);
+            throw new NotImplementedException();
         }
 
         public void TranslateTransform(float dx, float dy)
         {
-            g.TranslateTransform(dx, dy);
+            g.Translate(dx, dy);
         }
 
         public void TranslateTransform(float dx, float dy, MatrixOrder order)
         {
-            g.TranslateTransform(dx, dy, order);
+            throw new NotImplementedException();
         }
     }
 }

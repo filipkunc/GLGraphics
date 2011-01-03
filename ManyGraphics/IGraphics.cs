@@ -7,7 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Drawing.Imaging;
 
-namespace GraphicsInterface
+namespace ManyGraphics
 {
     public interface IGraphics
     {

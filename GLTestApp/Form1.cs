@@ -10,7 +10,7 @@ using GLWrapper;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Diagnostics;
-using GraphicsInterface;
+using ManyGraphics;
 using GLTestApp.Properties;
 
 namespace GLTestApp

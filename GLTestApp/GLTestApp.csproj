@@ -56,8 +56,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="GDIGraphics.cs" />
-    <Compile Include="GLGraphics.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -89,9 +87,9 @@
       <Project>{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}</Project>
       <Name>GLWrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GraphicsInterface\GraphicsInterface.csproj">
-      <Project>{232A8FC0-D750-48AF-9AB6-7B20B621FAE7}</Project>
-      <Name>GraphicsInterface</Name>
+    <ProjectReference Include="..\ManyGraphics\ManyGraphics.csproj">
+      <Project>{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}</Project>
+      <Name>ManyGraphics</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

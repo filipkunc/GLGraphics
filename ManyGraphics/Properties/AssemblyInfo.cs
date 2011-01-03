@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("GraphicsInterface")]
+[assembly: AssemblyTitle("ManyGraphics")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("GraphicsInterface")]
-[assembly: AssemblyCopyright("Copyright ©  2010")]
+[assembly: AssemblyProduct("ManyGraphics")]
+[assembly: AssemblyCopyright("Copyright ©  2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ada74d00-3ad3-458a-b0f2-dbf96adfaf26")]
+[assembly: Guid("292622f6-8cc0-4921-a33d-12506344bba3")]
 
 // Version information for an assembly consists of the following four values:
 //
