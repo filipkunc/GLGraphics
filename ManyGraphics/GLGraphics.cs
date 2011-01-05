@@ -11,9 +11,103 @@ using System.Windows.Forms;
 
 namespace ManyGraphics
 {
+    static class GraphicsExtensions
+    {
+        public static RectangleF ToRectangleF(this Rectangle rect)
+        {
+            return new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+    }
+
     public class GLGraphics : IGraphics
     {
+        private static int NextPow2(int n)
+        {
+            int x = 2;
+            while (x < n)
+                x <<= 1;
+            return x;
+        }
+
+        private static GLTexture GdiToTexture(Size originalSize, Action<Graphics> draw)
+        {
+            Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
+            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                    draw(g);
+                }
+                GLTexture texture = new GLTexture(bitmap, originalSize.Width, originalSize.Height);
+                return texture;
+            }
+        }
+        
+        static Dictionary<Image, GLTexture> _cachedImages = new Dictionary<Image, GLTexture>();
+        static Dictionary<string, GLTexture> _cachedStrings = new Dictionary<string, GLTexture>();
+
+        const int MaxCachedImages = 100;
+        const int MaxCachedStrings = 100;
+
+        private static void ClearTexturesIfNeeded<T>(Dictionary<T, GLTexture> cachedTextures, int maxTextureCount)
+        {
+            if (cachedTextures.Count > maxTextureCount)
+            {
+                foreach (var texture in cachedTextures.Values)
+                    texture.Dispose();
+
+                cachedTextures.Clear();
+            }
+        }
+
+        private static GLTexture GetCachedTexture(Image image)
+        {
+            GLTexture texture = null;
+            if (!_cachedImages.TryGetValue(image, out texture))
+            {
+                ClearTexturesIfNeeded(_cachedImages, MaxCachedImages);
+
+                texture = GdiToTexture(image.Size, gdi => gdi.DrawImageUnscaled(image, Point.Empty));
+                _cachedImages.Add(image, texture);
+            }
+            return texture;
+        }
+
+        private static GLTexture GetCachedTexture(string s, Font font, Brush brush, SizeF layoutSize, StringFormat stringFormat)
+        {
+            GLTexture texture = null;
+            if (!_cachedStrings.TryGetValue(s, out texture))
+            {
+                ClearTexturesIfNeeded(_cachedStrings, MaxCachedStrings);
+
+                Size originalSize = layoutSize.ToSize();
+                if (originalSize.IsEmpty)
+                    originalSize = TextRenderer.MeasureText(s, font);
+                texture = GdiToTexture(originalSize, gdi => 
+                    {
+                        if (layoutSize.IsEmpty)
+                        {
+                            if (stringFormat != null)
+                                gdi.DrawString(s, font, brush, PointF.Empty);
+                            else
+                                gdi.DrawString(s, font, brush, PointF.Empty, stringFormat);
+                        }
+                        else
+                        {
+                            if (stringFormat != null)
+                                gdi.DrawString(s, font, brush, new RectangleF(PointF.Empty, layoutSize), stringFormat);
+                            else
+                                gdi.DrawString(s, font, brush, new RectangleF(PointF.Empty, layoutSize));
+                        }
+                    });
+                _cachedStrings.Add(s, texture);
+            }
+            return texture;        
+        }
+
         GLCanvas g;
+        GraphicsUnit _pageUnit = GraphicsUnit.Pixel;
 
         public GLGraphics(GLCanvas canvas)
         {
@@ -88,11 +182,28 @@ namespace ManyGraphics
             get { return 1.0f; }
             set { }
         }
-
+        
         public GraphicsUnit PageUnit
         {
-            get { return GraphicsUnit.Pixel; }
-            set { }
+            get { return _pageUnit; }
+            set 
+            {
+                if (_pageUnit == value)
+                    return;
+                
+                _pageUnit = value;
+                switch (_pageUnit)
+                {
+                    case GraphicsUnit.Millimeter:
+                        g.GlobalScale = new PointF(g.Dpi.X /25.4f, g.Dpi.Y / 25.4f);
+                        break;
+                    case GraphicsUnit.Pixel:
+                        g.GlobalScale = new PointF(1.0f, 1.0f);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
         }
 
         public PixelOffsetMode PixelOffsetMode
@@ -137,11 +248,11 @@ namespace ManyGraphics
         {
             get
             {
-                throw new NotImplementedException();
+                return TextRenderingHint.AntiAliasGridFit;
             }
             set
             {
-                throw new NotImplementedException();
+                
             }
         }
 
@@ -209,22 +320,24 @@ namespace ManyGraphics
 
         public void DrawArc(Pen pen, Rectangle rect, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawArc(pen, rect.ToRectangleF(), startAngle, sweepAngle);
         }
 
         public void DrawArc(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawArc(rect, startAngle, sweepAngle, false);
         }
 
         public void DrawArc(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawArc(pen, new RectangleF(x, y, width, height), startAngle, sweepAngle);
         }
 
         public void DrawArc(Pen pen, int x, int y, int width, int height, int startAngle, int sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawArc(pen, new Rectangle(x, y, width, height), startAngle, sweepAngle);
         }
 
         public void DrawBezier(Pen pen, Point pt1, Point pt2, Point pt3, Point pt4)
@@ -309,22 +422,24 @@ namespace ManyGraphics
 
         public void DrawEllipse(Pen pen, Rectangle rect)
         {
-            throw new NotImplementedException();
+            DrawEllipse(pen, rect.ToRectangleF());
         }
 
         public void DrawEllipse(Pen pen, RectangleF rect)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawEllipse(rect);
         }
 
         public void DrawEllipse(Pen pen, float x, float y, float width, float height)
         {
-            throw new NotImplementedException();
+            DrawEllipse(pen, new RectangleF(x, y, width, height));
         }
 
         public void DrawEllipse(Pen pen, int x, int y, int width, int height)
         {
-            throw new NotImplementedException();
+            DrawEllipse(pen, new Rectangle(x, y, width, height));
         }
 
         public void DrawIcon(Icon icon, Rectangle targetRect)
@@ -340,31 +455,7 @@ namespace ManyGraphics
         public void DrawIconUnstretched(Icon icon, Rectangle targetRect)
         {
             throw new NotImplementedException();
-        }
-
-        static Dictionary<Image, GLTexture> _cachedTextures = new Dictionary<Image, GLTexture>();
-
-        private static GLTexture GetCachedTexture(Image image)
-        {
-            GLTexture texture = null;
-            if (_cachedTextures.TryGetValue(image, out texture))
-            {
-                return texture;
-            }
-            else
-            {
-                using (Bitmap bitmap = new Bitmap(NextPow2(image.Size.Width), NextPow2(image.Size.Height)))
-                {
-                    using (Graphics g = Graphics.FromImage(bitmap))
-                    {
-                        g.DrawImageUnscaled(image, Point.Empty);
-                    }
-                    texture = new GLTexture(bitmap, image.Size.Width, image.Size.Height);
-                    _cachedTextures.Add(image, texture);
-                    return texture;
-                }
-            }
-        }
+        }        
 
         public void DrawImage(Image image, Point point)
         {
@@ -531,12 +622,12 @@ namespace ManyGraphics
 
         public void DrawImageUnscaled(Image image, int x, int y)
         {
-            throw new NotImplementedException();
+            DrawImage(image, new Point(x, y));
         }
 
         public void DrawImageUnscaled(Image image, int x, int y, int width, int height)
         {
-            throw new NotImplementedException();
+            DrawImageUnscaled(image, new Rectangle(x, y, width, height));
         }
 
         public void DrawImageUnscaledAndClipped(Image image, Rectangle rect)
@@ -547,12 +638,14 @@ namespace ManyGraphics
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
             g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
             g.DrawLine(pt1, pt2);
         }
 
         public void DrawLine(Pen pen, PointF pt1, PointF pt2)
         {
             g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
             g.DrawLine(pt1, pt2);
         }
 
@@ -569,12 +662,14 @@ namespace ManyGraphics
         public void DrawLines(Pen pen, Point[] points)
         {
             g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
             g.DrawLines(points);
         }
 
         public void DrawLines(Pen pen, PointF[] points)
         {
             g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
             g.DrawLines(points);
         }
 
@@ -585,22 +680,24 @@ namespace ManyGraphics
 
         public void DrawPie(Pen pen, Rectangle rect, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawPie(pen, rect.ToRectangleF(), startAngle, sweepAngle);
         }
 
         public void DrawPie(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawArc(rect, startAngle, sweepAngle, true);
         }
 
         public void DrawPie(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawPie(pen, new RectangleF(x, y, width, height), startAngle, sweepAngle);
         }
 
         public void DrawPie(Pen pen, int x, int y, int width, int height, int startAngle, int sweepAngle)
         {
-            throw new NotImplementedException();
+            DrawPie(pen, new Rectangle(x, y, width, height), startAngle, sweepAngle);
         }
 
         public void DrawPolygon(Pen pen, Point[] points)
@@ -615,92 +712,79 @@ namespace ManyGraphics
 
         public void DrawRectangle(Pen pen, Rectangle rect)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawRectangle(rect);
         }
 
         public void DrawRectangle(Pen pen, float x, float y, float width, float height)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawRectangle(new RectangleF(x, y, width, height));
         }
 
         public void DrawRectangle(Pen pen, int x, int y, int width, int height)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = pen.Color;
+            g.LineWidth = pen.Width;
+            g.DrawRectangle(new Rectangle(x, y, width, height));
         }
 
         public void DrawRectangles(Pen pen, Rectangle[] rects)
         {
-            throw new NotImplementedException();
+            foreach (var rect in rects)
+                DrawRectangle(pen, rect);
         }
 
         public void DrawRectangles(Pen pen, RectangleF[] rects)
         {
-            throw new NotImplementedException();
-        }
-
-        static GLTexture _fontTexture;
-
-        public static void GdiToTexture(GLTexture texture, Size originalSize, Action<Graphics> draw)
-        {
-            Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
-            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    draw(g);
-                }
-                texture.Update(bitmap, originalSize.Width, originalSize.Height);
-            }
-        }
-
-        private static int NextPow2(int n)
-        {
-            int x = 2;
-            while (x < n)
-                x <<= 1;
-            return x;
-        }
+            foreach (var rect in rects)
+                DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
+        }        
 
         public void DrawString(string s, Font font, Brush brush, PointF point)
         {
-            g.CurrentColor = Color.White;
-            g.Texture2DEnabled = true;
-
-            if (_fontTexture == null)
-                _fontTexture = new GLTexture();
-
-            Size originalSize = TextRenderer.MeasureText(s, font);
-            
-            GdiToTexture(_fontTexture, originalSize, gdi => gdi.DrawString(s, font, brush, PointF.Empty));
-            
-            _fontTexture.Draw(point);
-
-            g.Texture2DEnabled = false;
+            DrawString(s, font, brush, point, null);
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle)
         {
-            throw new NotImplementedException();
+            DrawString(s, font, brush, layoutRectangle, null);
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y)
         {
-            throw new NotImplementedException();
+            DrawString(s, font, brush, new PointF(x, y));
         }
 
         public void DrawString(string s, Font font, Brush brush, PointF point, StringFormat format)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+
+            var texture = GetCachedTexture(s, font, brush, SizeF.Empty, format);
+
+            texture.Draw(point);
+
+            g.Texture2DEnabled = false;
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
         {
-            throw new NotImplementedException();
+            g.CurrentColor = Color.White;
+            g.Texture2DEnabled = true;
+
+            var texture = GetCachedTexture(s, font, brush, layoutRectangle.Size, format);
+
+            texture.Draw(layoutRectangle.Location);
+
+            g.Texture2DEnabled = false;
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y, StringFormat format)
         {
-            throw new NotImplementedException();
+            DrawString(s, font, brush, new PointF(x, y), format);
         }
 
         public void EndContainer(GraphicsContainer container)
@@ -988,34 +1072,73 @@ namespace ManyGraphics
             throw new NotImplementedException();
         }
 
+        private Color[] ColorsFromBrush(Brush brush)
+        {
+            if (brush is SolidBrush)
+            {
+                SolidBrush solid = (SolidBrush)brush;
+                g.CurrentColor = solid.Color;
+                return null;
+            }
+
+            if (brush is LinearGradientBrush)
+            {
+                LinearGradientBrush gradient = (LinearGradientBrush)brush;
+                Color[] colors = new Color[4];
+                if (gradient.Transform.Elements[2] == -0.5f)
+                {
+                    colors[0] = gradient.LinearColors[0];
+                    colors[1] = gradient.LinearColors[0];
+                    colors[2] = gradient.LinearColors[1];
+                    colors[3] = gradient.LinearColors[1];
+                }
+                else
+                {
+                    colors[0] = gradient.LinearColors[0];
+                    colors[1] = gradient.LinearColors[1];
+                    colors[2] = gradient.LinearColors[1];
+                    colors[3] = gradient.LinearColors[0];
+                }
+                return colors;
+            }
+
+            return null;
+        }
+
         public void FillRectangle(Brush brush, Rectangle rect)
         {
-            throw new NotImplementedException();
+            g.FillRectangle(rect, ColorsFromBrush(brush));  
         }
 
         public void FillRectangle(Brush brush, RectangleF rect)
         {
-            throw new NotImplementedException();
+            g.FillRectangle(rect, ColorsFromBrush(brush));
         }
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
         {
-            throw new NotImplementedException();
+            FillRectangle(brush, new RectangleF(x, y, width, height));
         }
 
         public void FillRectangle(Brush brush, int x, int y, int width, int height)
         {
-            throw new NotImplementedException();
+            FillRectangle(brush, new Rectangle(x, y, width, height));
         }
 
         public void FillRectangles(Brush brush, Rectangle[] rects)
         {
-            throw new NotImplementedException();
+            foreach (var rect in rects)
+            {
+                FillRectangle(brush, rect);
+            }
         }
 
         public void FillRectangles(Brush brush, RectangleF[] rects)
         {
-            throw new NotImplementedException();
+            foreach (var rect in rects)
+            {
+                FillRectangle(brush, rect);
+            }
         }
 
         public void FillRegion(Brush brush, Region region)

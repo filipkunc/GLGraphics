@@ -28,6 +28,7 @@ namespace GLWrapper
 		
 		GLTexture();
 		GLTexture(Bitmap ^bitmap, int originalWidth, int originalHeight);
+		~GLTexture();
 		void Update(Bitmap ^bitmap, int originalWidth, int originalHeight);
 
 		void Draw(System::Drawing::Rectangle rect);

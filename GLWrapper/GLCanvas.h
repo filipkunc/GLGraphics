@@ -13,6 +13,7 @@ namespace GLWrapper
 		Color _currentColor;
 		Size _size;
 		PointF _dpi;
+		PointF _globalScale;
 	public:
 		GLCanvas(Color backColor);
 
@@ -24,6 +25,7 @@ namespace GLWrapper
 		property Color CurrentColor { Color get(); void set(Color value); }
 		property Size CanvasSize { Size get(); void set(Size value); }
 		property PointF Dpi { PointF get(); void set(PointF value); }
+		property PointF GlobalScale { PointF get(); void set(PointF value); }
 		
 		void Clear(Color color);
 
@@ -36,8 +38,14 @@ namespace GLWrapper
 		void DrawPoint(PointF a);
 		void DrawPoints(array<PointF> ^points);
 		
+		void DrawRectangle(System::Drawing::Rectangle rect);
 		void DrawRectangle(RectangleF rect);
-		void FillRectangle(RectangleF rect);
+		
+		void FillRectangle(System::Drawing::Rectangle rect, array<Color> ^colors);
+		void FillRectangle(RectangleF rect, array<Color> ^colors);
+
+		void DrawEllipse(RectangleF rect);
+		void DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed);
 
 		void Identity();
 		void Translate(float dx, float dy);

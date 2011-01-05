@@ -175,6 +175,8 @@ namespace GLWrapper
 
 		if (glCanvas == nullptr)
 			glCanvas = gcnew GLCanvas(this->BackColor);
+		else
+			glCanvas->Clear(this->BackColor);
 		
 		glCanvas->CanvasSize = this->ClientSize;
 		glCanvas->Dpi = PointF(paintArgs->Graphics->DpiX, paintArgs->Graphics->DpiY);

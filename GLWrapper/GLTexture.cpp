@@ -63,6 +63,14 @@ namespace GLWrapper
 		
 		Update(bitmap, originalWidth, originalHeight);		
 	}
+
+	GLTexture::~GLTexture()
+	{
+		unsigned int textureID = this->textureID;
+		if (textureID > 0)
+			glDeleteTextures(1, &textureID);
+		this->textureID = 0;
+	}
 	
 	void GLTexture::Update(Bitmap ^bitmap, int originalWidth, int originalHeight)
 	{

@@ -59,12 +59,5 @@ namespace GLTestApp.Properties {
                 resourceCulture = value;
             }
         }
-        
-        internal static System.Drawing.Bitmap spaceship {
-            get {
-                object obj = ResourceManager.GetObject("spaceship", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
     }
 }

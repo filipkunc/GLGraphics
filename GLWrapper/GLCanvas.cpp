@@ -18,6 +18,8 @@ namespace GLWrapper
 		_lineWidth = 1.0f;
 		_pointSize = 1.0f;
 
+		_globalScale = PointF(1.0f, 1.0f);
+
 		_currentColor = Color::Transparent;
 		glColor4ub(0, 0, 0, 0);
 
@@ -94,7 +96,7 @@ namespace GLWrapper
 	void GLCanvas::LineWidth::set(float value)
 	{
 		_lineWidth = value;
-		glLineWidth(_lineWidth);
+		glLineWidth(_lineWidth * _globalScale.X);
 	}
 
 	float GLCanvas::PointSize::get()
@@ -105,7 +107,7 @@ namespace GLWrapper
 	void GLCanvas::PointSize::set(float value)
 	{
 		_pointSize = value;
-		glPointSize(_pointSize);
+		glPointSize(_pointSize * _globalScale.X);
 	}
 
 	Color GLCanvas::CurrentColor::get()
@@ -137,6 +139,17 @@ namespace GLWrapper
 	void GLCanvas::Dpi::set(PointF value)
 	{
 		_dpi = value;
+	}
+
+	PointF GLCanvas::GlobalScale::get()
+	{
+		return _globalScale;
+	}
+
+	void GLCanvas::GlobalScale::set(PointF value)
+	{
+		_globalScale = value;
+		Identity();
 	}
 
 	void GLCanvas::DrawLine(Point a, Point b)
@@ -192,25 +205,124 @@ namespace GLWrapper
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 
-	void GLCanvas::FillRectangle(RectangleF rect)
+	void GLCanvas::DrawRectangle(System::Drawing::Rectangle rect)
 	{
-		glRectf(rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height);
+		glBegin(GL_LINE_LOOP);
+		glVertex2i(rect.X, rect.Y);
+		glVertex2i(rect.X + rect.Width, rect.Y);
+		glVertex2i(rect.X + rect.Width, rect.Y + rect.Height);
+		glVertex2i(rect.X, rect.Y + rect.Height);
+		glEnd();
 	}
-
+	
 	void GLCanvas::DrawRectangle(RectangleF rect)
 	{
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(rect.X, rect.Y);
 		glVertex2f(rect.X + rect.Width, rect.Y);
-		glVertex2f(rect.X + rect.Width, rect.Y + rect.Height + 1.0f);
+		glVertex2f(rect.X + rect.Width, rect.Y + rect.Height);
 		glVertex2f(rect.X, rect.Y + rect.Height);
 		glEnd();		
 	}
 
+	void GLCanvas::FillRectangle(System::Drawing::Rectangle rect, array<Color> ^colors)
+	{
+		if (colors == nullptr)
+		{
+			glBegin(GL_QUADS);
+			glVertex2i(rect.X, rect.Y);
+			glVertex2i(rect.X + rect.Width, rect.Y);
+			glVertex2i(rect.X + rect.Width, rect.Y + rect.Height);
+			glVertex2i(rect.X, rect.Y + rect.Height);
+			glEnd();
+		}
+		else
+		{
+			glBegin(GL_QUADS);
+			glColor4ub(colors[0].R, colors[0].G, colors[0].B, colors[0].A);
+			glVertex2i(rect.X, rect.Y);
+			glColor4ub(colors[1].R, colors[1].G, colors[1].B, colors[1].A);
+			glVertex2i(rect.X + rect.Width, rect.Y);
+			glColor4ub(colors[2].R, colors[2].G, colors[2].B, colors[2].A);
+			glVertex2i(rect.X + rect.Width, rect.Y + rect.Height);
+			glColor4ub(colors[3].R, colors[3].G, colors[3].B, colors[3].A);
+			glVertex2i(rect.X, rect.Y + rect.Height);
+			glEnd();
+		}
+	}
+
+	void GLCanvas::FillRectangle(RectangleF rect, array<Color> ^colors)
+	{
+		if (colors == nullptr)
+		{
+			glBegin(GL_QUADS);
+			glVertex2f(rect.X, rect.Y);
+			glVertex2f(rect.X + rect.Width, rect.Y);
+			glVertex2f(rect.X + rect.Width, rect.Y + rect.Height);
+			glVertex2f(rect.X, rect.Y + rect.Height);
+			glEnd();
+		}
+		else
+		{
+			glBegin(GL_QUADS);
+			glColor4ub(colors[0].R, colors[0].G, colors[0].B, colors[0].A);
+			glVertex2f(rect.X, rect.Y);
+			glColor4ub(colors[1].R, colors[1].G, colors[1].B, colors[1].A);
+			glVertex2f(rect.X + rect.Width, rect.Y);
+			glColor4ub(colors[2].R, colors[2].G, colors[2].B, colors[2].A);
+			glVertex2f(rect.X + rect.Width, rect.Y + rect.Height);
+			glColor4ub(colors[3].R, colors[3].G, colors[3].B, colors[3].A);
+			glVertex2f(rect.X, rect.Y + rect.Height);
+			glEnd();
+		}
+	}
+
+	void GLCanvas::DrawEllipse(RectangleF rect)
+	{
+		const float DEG2RAD = (float)Math::PI / 180.0f;
+
+		float xRadius = rect.Width / 2.0f;
+		float yRadius = rect.Height / 2.0f;
+
+		glBegin(GL_LINE_LOOP);
+ 
+		for (float i = 0; i < 360.0f; i++)
+		{
+			//convert degrees into radians
+			float degInRad = i * DEG2RAD;
+			glVertex2f(cosf(degInRad) * xRadius + rect.X + xRadius, sinf(degInRad) * yRadius + rect.Y + yRadius);
+		}
+	
+		glEnd();
+	}
+
+	void GLCanvas::DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed)
+	{
+		const float DEG2RAD = (float)Math::PI / 180.0f;
+
+		float xRadius = rect.Width / 2.0f;
+		float yRadius = rect.Height / 2.0f;
+
+		if (closed)
+			glBegin(GL_LINE_LOOP);
+		else
+			glBegin(GL_LINE_STRIP);
+ 
+		for (float i = startAngle; i < startAngle + sweepAngle; i++)
+		{
+			//convert degrees into radians
+			float degInRad = i * DEG2RAD;
+			glVertex2f(cosf(degInRad) * xRadius + rect.X + xRadius, sinf(degInRad) * yRadius + rect.Y + yRadius);
+		}
+	
+		glEnd();
+	}
+	
 	void GLCanvas::Identity()
 	{
 		glPopMatrix();
 		glPushMatrix();
+		glScalef(_globalScale.X, _globalScale.Y, 1.0f);
 	}
 
 	void GLCanvas::Translate(float dx, float dy)

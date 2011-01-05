@@ -17,144 +17,21 @@ namespace GLTestApp
 {
     public partial class Form1 : Form
     {
-        PointF[] points = new PointF[4000];
-        float offset = 0.0f;
-
-        Bitmap spaceship = Resources.spaceship;
-
         public Form1()
         {
             InitializeComponent();
             glView1.GLEnabled = false;
             //glView1.NeverInitGL = true;
-
-            spaceship.MakeTransparent(Color.Magenta);
+            //timer1.Enabled = false;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            float x = offset;
-            float longX = offset;
-            
-            for (int i = 0; i < points.Length; i++)
-            {
-                points[i].X = x;
-                points[i].Y = 200.0f - (float)Math.Sin(x) * (float)Math.Sin(longX) * 100.0f;
-                x += 0.5f;
-                longX += 0.01f;
-            }
-
-            offset += 0.1f;
-            if (offset > 2.0f * (float)Math.PI)
-                offset -= 2.0f * (float)Math.PI;
-
             Stopwatch watch = new Stopwatch();
             watch.Start();
             glView1.Refresh();
             watch.Stop();
             label1.Text = string.Format("FPS: {0}", 1.0 / watch.Elapsed.TotalSeconds);
-        }
-
-        Bitmap gridBitmap = null;
-
-        Bitmap CreateGridBitmap(int width, int height, int step)
-        {
-            if (gridBitmap == null)
-            {
-                gridBitmap = new Bitmap(width, height);
-
-                using (Graphics g = Graphics.FromImage(gridBitmap))
-                {
-                    DrawGrid(new GDIGraphics(g), width, height, step);
-                }
-            }
-
-            return gridBitmap;
-        }
-
-        void DrawGrid(IGraphics g, int width, int height, int step)
-        {
-            for (int y = 0; y < height; y += step)
-            {
-                g.DrawLine(Pens.LightGray, 0, y, width, y);
-            }
-
-            for (int x = 0; x < width; x += step)
-            {
-                g.DrawLine(Pens.LightGray, x, 0, x, height);
-            }
-        }
-
-        Point spaceshipPosition = new Point(400, 400);
-        Point move = Point.Empty;
-
-        void Draw(IGraphics g)
-        {
-            g.Clear(Color.White);
-
-            /*Bitmap bitmap = CreateGridBitmap(glView1.Width, glView1.Height, 10);
-
-            g.DrawImage(bitmap, Point.Empty);*/
-
-            //DrawGrid(g, glView1.Width, glView1.Height, 10);
-
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TranslateTransform(0.0f, -50.0f);
-            g.DrawLines(Pens.Black, points);
-
-            g.TranslateTransform(0.0f, 200.0f);
-            g.DrawLines(Pens.Gray, points);
-
-            g.ResetTransform();
-
-            g.DrawString("Test string, ☺", new Font("Arial", 20.0f), Brushes.Blue, new PointF(10.0f, 10.0f));
-
-            g.DrawLine(Pens.Black, new Point(30, 500), new Point(830, 500));
-
-            for (int x = 1; x < 40; x++)
-            {
-                g.DrawLine(Pens.Black, new Point(30 + x * 20, 510), new Point(30 + x * 20, 490));
-
-                g.DrawString(x.ToString(), this.Font, Brushes.Blue, new PointF(30.0f + x * 20.0f, 480.0f));
-            }
-
-            g.DrawImage(spaceship, spaceshipPosition);
-
-            spaceshipPosition.X += move.X;
-            spaceshipPosition.Y += move.Y;
-        }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            const int speed = 3;
-
-            if (keyData == Keys.Left)
-            {
-                move.X -= speed;
-                if (move.X < -speed)
-                    move.X = -speed;
-            }
-            else if (keyData == Keys.Right)
-            {
-                move.X += speed;
-                if (move.X > speed)
-                    move.X = speed;
-            }
-
-            if (keyData == Keys.Up)
-            {
-                move.Y -= speed;
-                if (move.Y < -speed)
-                    move.Y = -speed;
-            }
-            else if (keyData == Keys.Down)
-            {
-                move.Y += speed;
-                if (move.Y > speed)
-                    move.Y = speed;
-            }
-
-            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void glView1_Paint(object sender, PaintEventArgs e)
@@ -172,6 +49,47 @@ namespace GLTestApp
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             glView1.GLEnabled = checkBox1.Checked;
+            glView1.Refresh();
+        }
+
+        void Draw(IGraphics g)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            //g.PageUnit = GraphicsUnit.Millimeter;
+
+            g.DrawRectangle(new Pen(Color.Black, 2.0f), new Rectangle(50, 50, 100, 50));
+            g.TranslateTransform(0, 100);
+            g.DrawRectangle(new Pen(Color.Black, 1.0f), new Rectangle(50, 50, 100, 50));
+
+            g.ResetTransform();
+
+            List<PointF> points = new List<PointF>();
+
+            for (float x = 0.0f; x < (float)Math.PI * 6.0f; x += 0.01f)
+            {
+                points.Add(new PointF(x * (float)Math.Cos(x) * 5.0f + 300.0f, x * (float)Math.Sin(x) * 5.0f + 400.0f));
+            }
+
+            g.DrawLines(new Pen(Color.Blue, 2.0f), points.ToArray());
+
+            Rectangle gradientRect1 = new Rectangle(600, 50, 50, 100);
+            LinearGradientBrush brush1 = new LinearGradientBrush(gradientRect1, Color.Red, Color.Yellow, LinearGradientMode.Vertical);
+
+            Rectangle gradientRect2 = new Rectangle(700, 50, 50, 100);
+            LinearGradientBrush brush2 = new LinearGradientBrush(gradientRect2, Color.Red, Color.Yellow, LinearGradientMode.Horizontal);
+
+            g.FillRectangle(brush1, gradientRect1);
+            g.FillRectangle(brush2, gradientRect2);
+
+            brush1.Dispose();
+            brush2.Dispose();
+            
+            g.DrawEllipse(Pens.DarkGreen, new Rectangle(200, 50, 100, 60));
+
+            g.DrawArc(Pens.DimGray, new Rectangle(200, 150, 100, 100), 50.0f, 180.0f);
+            //g.FillEllipse(Brushes.Blue, new Rectangle(350, 50, 100, 60));
+
+            g.DrawString("Test string", new Font("Arial Black", 30.0f), Brushes.Purple, new PointF(500.0f, 400.0f));
         }
     }    
 }
