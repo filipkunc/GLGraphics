@@ -288,7 +288,6 @@ namespace GLWrapper
  
 		for (float i = 0; i < 360.0f; i++)
 		{
-			//convert degrees into radians
 			float degInRad = i * DEG2RAD;
 			glVertex2f(cosf(degInRad) * xRadius + rect.X + xRadius, sinf(degInRad) * yRadius + rect.Y + yRadius);
 		}

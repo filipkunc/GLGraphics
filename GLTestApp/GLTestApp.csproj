@@ -87,9 +87,9 @@
       <Project>{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}</Project>
       <Name>GLWrapper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ManyGraphics\ManyGraphics.csproj">
+    <ProjectReference Include="..\GraphicsImplementation\GraphicsImplementation.csproj">
       <Project>{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}</Project>
-      <Name>ManyGraphics</Name>
+      <Name>GraphicsImplementation</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

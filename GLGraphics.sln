@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLTestApp", "GLTestApp\GLTe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLWrapper", "GLWrapper\GLWrapper.vcproj", "{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManyGraphics", "ManyGraphics\ManyGraphics.csproj", "{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphicsImplementation", "GraphicsImplementation\GraphicsImplementation.csproj", "{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
