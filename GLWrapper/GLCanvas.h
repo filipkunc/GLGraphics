@@ -2,6 +2,8 @@
 
 namespace GLWrapper 
 {
+	ref class GLMatrix2D;
+
 	public ref class GLCanvas
 	{
 	private:
@@ -13,7 +15,7 @@ namespace GLWrapper
 		Color _currentColor;
 		Size _size;
 		PointF _dpi;
-		PointF _globalScale;
+		PointF _globalScale;		
 	public:
 		GLCanvas(Color backColor);
 
@@ -48,8 +50,6 @@ namespace GLWrapper
 		void DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed);
 
 		void Identity();
-		void Translate(float dx, float dy);
-		void Rotate(float degrees);
-		void Scale(float sx, float sy);
+		void Transform(GLMatrix2D ^matrix);		
 	};
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GLTexture.h"
+#include "GLMatrix2D.h"
 #include "GLCanvas.h"
 
 namespace GLWrapper
@@ -96,7 +97,10 @@ namespace GLWrapper
 	void GLCanvas::LineWidth::set(float value)
 	{
 		_lineWidth = value;
-		glLineWidth(_lineWidth * _globalScale.X);
+		if (_lineWidth <= 0.0f)
+			glLineWidth(1.0f);
+		else
+			glLineWidth(_lineWidth * _globalScale.X);
 	}
 
 	float GLCanvas::PointSize::get()
@@ -107,7 +111,10 @@ namespace GLWrapper
 	void GLCanvas::PointSize::set(float value)
 	{
 		_pointSize = value;
-		glPointSize(_pointSize * _globalScale.X);
+		if (_pointSize <= 0.0f)
+			glPointSize(1.0f);
+		else
+			glPointSize(_pointSize * _globalScale.X);
 	}
 
 	Color GLCanvas::CurrentColor::get()
@@ -316,26 +323,17 @@ namespace GLWrapper
 	
 		glEnd();
 	}
-	
+
 	void GLCanvas::Identity()
 	{
 		glPopMatrix();
 		glPushMatrix();
-		glScalef(_globalScale.X, _globalScale.Y, 1.0f);
-	}
+		glScalef(_globalScale.X, _globalScale.Y, 1.0f);		
+	}	
 
-	void GLCanvas::Translate(float dx, float dy)
+	void GLCanvas::Transform(GLMatrix2D ^matrix)
 	{
-		glTranslatef(dx, dy, 0.0f);
-	}
-
-	void GLCanvas::Rotate(float degrees)
-	{
-		glRotatef(degrees, 0.0f, 0.0f, 1.0f);
-	}
-	
-	void GLCanvas::Scale(float sx, float sy)
-	{
-		glScalef(sx, sy, 1.0f);
+		Identity();
+		matrix->MultMatrix();
 	}
 }

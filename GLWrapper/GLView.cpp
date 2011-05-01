@@ -166,7 +166,7 @@ namespace GLWrapper
 		glTranslatef((float)-rect.X, (float)rect.Y + (float)rect.Height, 0);
 		glScalef(1, -1, 1);
 
-		glTranslatef(viewOffset.X, viewOffset.Y, 0.0f);
+		glTranslatef(viewOffset.X + 0.5f, viewOffset.Y + 0.5f, 0.0f);
 	}
 
 	void GLView::DrawGL(PaintEventArgs ^paintArgs)

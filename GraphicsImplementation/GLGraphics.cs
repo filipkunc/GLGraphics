@@ -36,6 +36,8 @@ namespace GraphicsImplementation
             return false;
         }
 
+        #region Texture Cache
+
         private static GLTexture GdiToTexture(Size originalSize, Action<Graphics> draw)
         {
             Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
@@ -109,8 +111,12 @@ namespace GraphicsImplementation
                 });
         }
 
+        #endregion
+
         GLCanvas g;
         GraphicsUnit _pageUnit = GraphicsUnit.Pixel;
+        Matrix _transform = new Matrix();
+        GLMatrix2D _glTransform = new GLMatrix2D();
 
         public GLGraphics(GLCanvas canvas)
         {
@@ -263,11 +269,13 @@ namespace GraphicsImplementation
         {
             get
             {
-                throw new NotImplementedException();
+                return _transform;
             }
             set
             {
-                throw new NotImplementedException();
+                _transform = value;
+                _glTransform.SetFromGdiMatrix(value);
+                g.Transform(_glTransform);
             }
         }
 
@@ -784,9 +792,12 @@ namespace GraphicsImplementation
 
             g.CurrentColor = Color.White;
             g.Texture2DEnabled = true;
-
+            
             layoutRectangle.X *= currentScale.X;
             layoutRectangle.Y *= currentScale.Y;
+
+            layoutRectangle.X -= 0.5f;
+            layoutRectangle.Y -= 0.5f;
 
             var texture = GetCachedTexture(s, font, brush, layoutRectangle.Size, format);
 
@@ -1312,7 +1323,8 @@ namespace GraphicsImplementation
 
         public void ResetTransform()
         {
-            g.Identity();
+            _transform.Reset();
+            Transform = _transform;
         }
 
         public void Restore(GraphicsState gstate)
@@ -1322,12 +1334,14 @@ namespace GraphicsImplementation
 
         public void RotateTransform(float angle)
         {
-            g.Rotate(angle);
+            _transform.Rotate(angle);
+            Transform = _transform;
         }
 
         public void RotateTransform(float angle, MatrixOrder order)
         {
-            throw new NotImplementedException();
+            _transform.Rotate(angle, order);
+            Transform = _transform;
         }
 
         public GraphicsState Save()
@@ -1337,12 +1351,14 @@ namespace GraphicsImplementation
 
         public void ScaleTransform(float sx, float sy)
         {
-            g.Scale(sx, sy);
+            _transform.Scale(sx, sy);
+            Transform = _transform;
         }
 
         public void ScaleTransform(float sx, float sy, MatrixOrder order)
         {
-            throw new NotImplementedException();
+            _transform.Scale(sx, sy, order);
+            Transform = _transform;
         }
 
         public void SetClip(Graphics g)
@@ -1412,12 +1428,14 @@ namespace GraphicsImplementation
 
         public void TranslateTransform(float dx, float dy)
         {
-            g.Translate(dx, dy);
+            _transform.Translate(dx, dy);
+            Transform = _transform;
         }
 
         public void TranslateTransform(float dx, float dy, MatrixOrder order)
         {
-            throw new NotImplementedException();
+            _transform.Translate(dx, dy, order);
+            Transform = _transform;
         }
     }
 }

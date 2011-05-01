@@ -204,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GLMatrix2D.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GLTexture.cpp"
 				>
 			</File>
@@ -247,6 +251,10 @@
 			</File>
 			<File
 				RelativePath=".\GLCanvas.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GLMatrix2D.h"
 				>
 			</File>
 			<File

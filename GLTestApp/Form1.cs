@@ -64,12 +64,15 @@ namespace GLTestApp
                 points.Add(new PointF(x * (float)Math.Cos(x), x * (float)Math.Sin(x)));
             }
 
+            Matrix m = new Matrix();
+
             for (int y = 0; y < 5; y++)
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    g.ResetTransform();
-                    g.TranslateTransform(x * 30.0f + 20.0f, y * 30.0f + 20.0f);
+                    m.Reset();
+                    m.Translate(x * 30.0f + 20.0f, y * 30.0f + 20.0f);
+                    g.Transform = m;
                     g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());                    
                 }
             }
@@ -77,6 +80,8 @@ namespace GLTestApp
             g.ResetTransform();
 
             g.DrawString("Test string", new Font("Arial Black", 30.0f), Brushes.Purple, new PointF(1.0f, 1.0f));
+
+            g.DrawRectangle(Pens.Black, new Rectangle(10, 10, 50, 100));
         }
     }    
 }
