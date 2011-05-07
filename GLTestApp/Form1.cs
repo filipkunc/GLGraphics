@@ -55,7 +55,7 @@ namespace GLTestApp
         void Draw(IGraphics g)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.PageUnit = GraphicsUnit.Millimeter;
+            //g.PageUnit = GraphicsUnit.Millimeter;
 
             /*List<PointF> points = new List<PointF>();
 
@@ -80,9 +80,7 @@ namespace GLTestApp
             g.ResetTransform();*/
 
             g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 1.0f, 100.0f, 20.0f));
-
-            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 20.0f, 100.0f, 20.0f));
-
+            
             //g.DrawRectangle(new Pen(Color.Black, 0.0f), new Rectangle(10, 10, 50, 100));
 
             StringFormat sf = new StringFormat();
@@ -91,8 +89,10 @@ namespace GLTestApp
 
             RectangleF rect = new RectangleF(50.0f, 50.0f, 200.0f, 100.0f);
 
-            g.DrawRectangle(Pens.Black, rect.X, rect.Y, rect.Width, rect.Height);
+            g.FillRectangle(Brushes.Green, rect.X, rect.Y, rect.Width, rect.Height);
             g.DrawString("Test string", this.Font, Brushes.Black, rect, sf);
+
+            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 20.0f, 100.0f, 20.0f));
         }
     }    
 }

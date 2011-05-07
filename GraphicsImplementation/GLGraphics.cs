@@ -39,18 +39,19 @@ namespace GraphicsImplementation
 
         #region Texture Cache
 
-        private static GLTexture GdiToTexture(Size originalSize, Action<Graphics> draw)
+        private static GLTexture GdiToTexture(Color backColor, Size originalSize, Action<Graphics> draw)
         {
             Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
             using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.Clear(Color.White);
-                    g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+                    if (backColor != Color.Transparent)
+                        g.Clear(backColor);
                     draw(g);                    
                 }
-                bitmap.MakeTransparent(Color.White);
+                if (backColor != Color.Transparent)
+                    bitmap.MakeTransparent(backColor);
                 GLTexture texture = new GLTexture(bitmap, originalSize.Width, originalSize.Height);
                 return texture;
             }
@@ -70,14 +71,14 @@ namespace GraphicsImplementation
             }
         }
 
-        private static GLTexture GetCachedTexture(object key, Size originalSize, Action<Graphics> draw)
+        private static GLTexture GetCachedTexture(object key, Color backColor, Size originalSize, Action<Graphics> draw)
         {
             GLTexture texture = null;
             if (!_textureCache.TryGetValue(key, out texture))
             {
                 ClearTexturesIfNeeded();
 
-                texture = GdiToTexture(originalSize, draw);
+                texture = GdiToTexture(backColor, originalSize, draw);
                 _textureCache.Add(key, texture);
             }
             return texture;
@@ -86,10 +87,10 @@ namespace GraphicsImplementation
 
         private static GLTexture GetCachedTexture(Image image)
         {
-            return GetCachedTexture(image, image.Size, gdi => gdi.DrawImageUnscaled(image, Point.Empty));
+            return GetCachedTexture(image, Color.Transparent, image.Size, gdi => gdi.DrawImageUnscaled(image, Point.Empty));
         }
 
-        private static GLTexture GetCachedTexture(string s, Font font, Brush brush, SizeF layoutSize, StringFormat stringFormat)
+        private static GLTexture GetCachedTexture(string s, Font font, Color backColor, Brush brush, SizeF layoutSize, StringFormat stringFormat)
         {
             Size originalSize = layoutSize.ToSize();
             if (originalSize.IsEmpty)
@@ -100,11 +101,11 @@ namespace GraphicsImplementation
             object key;
 
             if (stringFormat != null)
-                key = new { s, font, solid.Color, stringFormat.Alignment, stringFormat.LineAlignment };
+                key = new { s, font, solid.Color, stringFormat.Alignment, stringFormat.LineAlignment, backColor };
             else
-                key = new { s, font, solid.Color };
+                key = new { s, font, solid.Color, backColor };
 
-            return GetCachedTexture(key, originalSize, gdi =>
+            return GetCachedTexture(key, backColor, originalSize, gdi =>
                 {
                     if (layoutSize.IsEmpty)
                     {
@@ -126,6 +127,20 @@ namespace GraphicsImplementation
         GraphicsUnit _pageUnit = GraphicsUnit.Pixel;
         Matrix _transform = new Matrix();
         GLMatrix2D _glTransform = new GLMatrix2D();
+
+        struct RectFill
+        {
+            public RectangleF Rect;
+            public Color Fill;
+
+            public RectFill(RectangleF rect, Color fill)
+            {
+                Rect = rect;
+                Fill = fill;
+            }
+        }
+
+        List<RectFill> _rectFills = new List<RectFill>();
 
         public GLGraphics(GLCanvas canvas)
         {
@@ -812,11 +827,18 @@ namespace GraphicsImplementation
                 layoutRectangle.Height *= currentScale.Y;
             }
 
-            Stopwatch sw = Stopwatch.StartNew();
-            
-            var texture = GetCachedTexture(s, font, brush, layoutRectangle.Size, format);
+            Color backColor = g.BackColor;
 
-            Trace.WriteLine(sw.ElapsedMilliseconds);
+            foreach (var rectFill in _rectFills)
+            {
+                if (layoutRectangle.IntersectsWith(rectFill.Rect))
+                {
+                    backColor = rectFill.Fill;
+                    break;
+                }
+            }
+
+            var texture = GetCachedTexture(s, font, backColor, brush, layoutRectangle.Size, format);
 
             if (layoutRectangle.Size.IsEmpty && format != null)
             {
@@ -1181,24 +1203,38 @@ namespace GraphicsImplementation
             return null;
         }
 
+        private void AddRectFill(RectangleF rect)
+        {
+            PointF currentScale = g.GlobalScale;
+            
+            rect.X *= currentScale.X;
+            rect.Y *= currentScale.Y;
+            rect.Width *= currentScale.X;
+            rect.Height *= currentScale.Y;            
+            
+            _rectFills.Add(new RectFill(rect, g.CurrentColor));
+        }
+
         public void FillRectangle(Brush brush, Rectangle rect)
         {
             g.FillRectangle(rect, ColorsFromBrush(brush));
+            AddRectFill(rect);
         }
 
         public void FillRectangle(Brush brush, RectangleF rect)
         {
             g.FillRectangle(rect, ColorsFromBrush(brush));
+            AddRectFill(rect);
         }
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
         {
-            FillRectangle(brush, new RectangleF(x, y, width, height));
+            FillRectangle(brush, new RectangleF(x, y, width, height));            
         }
 
         public void FillRectangle(Brush brush, int x, int y, int width, int height)
         {
-            FillRectangle(brush, new Rectangle(x, y, width, height));
+            FillRectangle(brush, new Rectangle(x, y, width, height));            
         }
 
         public void FillRectangles(Brush brush, Rectangle[] rects)
