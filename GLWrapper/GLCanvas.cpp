@@ -29,6 +29,7 @@ namespace GLWrapper
 
 	void GLCanvas::Clear(Color color)
 	{
+		_backColor = color;
 		glClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
@@ -115,6 +116,11 @@ namespace GLWrapper
 			glPointSize(1.0f);
 		else
 			glPointSize(_pointSize * _globalScale.X);
+	}
+
+	Color GLCanvas::BackColor::get()
+	{
+		return _backColor;
 	}
 
 	Color GLCanvas::CurrentColor::get()

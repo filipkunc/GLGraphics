@@ -13,6 +13,7 @@ namespace GLWrapper
 		float _lineWidth;
 		float _pointSize;
 		Color _currentColor;
+		Color _backColor;
 		Size _size;
 		PointF _dpi;
 		PointF _globalScale;		
@@ -25,6 +26,7 @@ namespace GLWrapper
 		property float LineWidth { float get(); void set(float value); }
 		property float PointSize { float get(); void set(float value); }
 		property Color CurrentColor { Color get(); void set(Color value); }
+		property Color BackColor { Color get(); }
 		property Size CanvasSize { Size get(); void set(Size value); }
 		property PointF Dpi { PointF get(); void set(PointF value); }
 		property PointF GlobalScale { PointF get(); void set(PointF value); }

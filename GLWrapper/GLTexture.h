@@ -25,6 +25,8 @@ namespace GLWrapper
 	public:
 		property int Width { int get() { return width; } }
 		property int Height { int get() { return height; } }
+		property int OriginalWidth { int get() { return originalWidth; } }
+		property int OriginalHeight { int get() { return originalHeight; } }
 		
 		GLTexture();
 		GLTexture(Bitmap ^bitmap, int originalWidth, int originalHeight);

@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using GLWrapper;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace GraphicsImplementation
 {
@@ -45,9 +46,11 @@ namespace GraphicsImplementation
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-                    draw(g);
+                    g.Clear(Color.White);
+                    g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+                    draw(g);                    
                 }
+                bitmap.MakeTransparent(Color.White);
                 GLTexture texture = new GLTexture(bitmap, originalSize.Width, originalSize.Height);
                 return texture;
             }
@@ -92,14 +95,20 @@ namespace GraphicsImplementation
             if (originalSize.IsEmpty)
                 originalSize = TextRenderer.MeasureText(s, font);
 
-            return GetCachedTexture(s, originalSize, gdi =>
+            SolidBrush solid = (SolidBrush)brush;
+
+            object key;
+
+            if (stringFormat != null)
+                key = new { s, font, solid.Color, stringFormat.Alignment, stringFormat.LineAlignment };
+            else
+                key = new { s, font, solid.Color };
+
+            return GetCachedTexture(key, originalSize, gdi =>
                 {
                     if (layoutSize.IsEmpty)
                     {
-                        if (stringFormat != null)
-                            gdi.DrawString(s, font, brush, PointF.Empty);
-                        else
-                            gdi.DrawString(s, font, brush, PointF.Empty, stringFormat);
+                        gdi.DrawString(s, font, brush, PointF.Empty);
                     }
                     else
                     {
@@ -792,17 +801,59 @@ namespace GraphicsImplementation
 
             g.CurrentColor = Color.White;
             g.Texture2DEnabled = true;
+
+            PointF textLocation = layoutRectangle.Location;
+
+            if (this._pageUnit == GraphicsUnit.Millimeter)
+            {
+                textLocation.X *= currentScale.X;
+                textLocation.Y *= currentScale.Y;
+                layoutRectangle.Width *= currentScale.X;
+                layoutRectangle.Height *= currentScale.Y;
+            }
+
+            Stopwatch sw = Stopwatch.StartNew();
             
-            layoutRectangle.X *= currentScale.X;
-            layoutRectangle.Y *= currentScale.Y;
-
-            layoutRectangle.X -= 0.5f;
-            layoutRectangle.Y -= 0.5f;
-
             var texture = GetCachedTexture(s, font, brush, layoutRectangle.Size, format);
 
-            texture.Draw(layoutRectangle.Location);
+            Trace.WriteLine(sw.ElapsedMilliseconds);
 
+            if (layoutRectangle.Size.IsEmpty && format != null)
+            {
+                switch (format.Alignment)
+                {
+                    case StringAlignment.Center:
+                        textLocation.X -= (float)Math.Round(texture.OriginalWidth / 2.0, MidpointRounding.AwayFromZero);
+                        break;
+                    case StringAlignment.Far:
+                        textLocation.X -= texture.OriginalWidth;
+                        break;
+                    case StringAlignment.Near:
+                    default:
+                        break;
+                }
+
+                switch (format.LineAlignment)
+                {
+                    case StringAlignment.Center:
+                        textLocation.Y -= (float)Math.Round(texture.OriginalHeight / 2.0, MidpointRounding.AwayFromZero);
+                        break;
+                    case StringAlignment.Far:
+                        textLocation.Y -= texture.OriginalHeight;
+                        break;
+                    case StringAlignment.Near:
+                    default:
+                        break;
+                }
+            }
+
+            textLocation.X = (float)Math.Round(textLocation.X);
+            textLocation.Y = (float)Math.Round(textLocation.Y);
+            textLocation.X -= 0.5f;
+            textLocation.Y -= 0.5f;
+
+            texture.Draw(textLocation);            
+            
             g.Texture2DEnabled = false;
             g.GlobalScale = currentScale;
         }

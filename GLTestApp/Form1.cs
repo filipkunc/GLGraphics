@@ -57,7 +57,7 @@ namespace GLTestApp
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PageUnit = GraphicsUnit.Millimeter;
 
-            List<PointF> points = new List<PointF>();
+            /*List<PointF> points = new List<PointF>();
 
             for (float x = 0.0f; x < (float)Math.PI * 6.0f; x += 0.01f)
             {
@@ -73,15 +73,26 @@ namespace GLTestApp
                     m.Reset();
                     m.Translate(x * 30.0f + 20.0f, y * 30.0f + 20.0f);
                     g.Transform = m;
-                    g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());                    
+                    g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());
                 }
             }
 
-            g.ResetTransform();
+            g.ResetTransform();*/
 
-            g.DrawString("Test string", new Font("Arial Black", 30.0f), Brushes.Purple, new PointF(1.0f, 1.0f));
+            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 1.0f, 100.0f, 20.0f));
 
-            g.DrawRectangle(Pens.Black, new Rectangle(10, 10, 50, 100));
+            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 20.0f, 100.0f, 20.0f));
+
+            //g.DrawRectangle(new Pen(Color.Black, 0.0f), new Rectangle(10, 10, 50, 100));
+
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
+
+            RectangleF rect = new RectangleF(50.0f, 50.0f, 200.0f, 100.0f);
+
+            g.DrawRectangle(Pens.Black, rect.X, rect.Y, rect.Width, rect.Height);
+            g.DrawString("Test string", this.Font, Brushes.Black, rect, sf);
         }
     }    
 }
