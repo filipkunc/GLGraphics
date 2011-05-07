@@ -1,4 +1,4 @@
-﻿# Welcome to GLGraphics
+# Welcome to GLGraphics
 
 ---
 
