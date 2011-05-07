@@ -8,8 +8,8 @@
     <ProjectGuid>{DA7F9B3F-70E9-42EF-BFAF-574D745DEE07}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ManyGraphics</RootNamespace>
-    <AssemblyName>ManyGraphics</AssemblyName>
+    <RootNamespace>GraphicsImplementation</RootNamespace>
+    <AssemblyName>GraphicsImplementation</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

@@ -1,4 +1,4 @@
-# Welcome to GLGraphics
+﻿# Welcome to GLGraphics
 
 ---
 
@@ -12,7 +12,7 @@ GLGraphics is partial reimplementation of System.Drawing.Graphics in C#, C++/CLI
 
 ## How it is done?
 
-System.Drawing.Graphics is sealed class so it cannot be inherited. There also doesn't exist any interface for drawing. First thing I have done is to add interface with every public method Graphics has, this lies in file ManyGraphics/IGraphics.cs. Then I created very simple wrapper for OpenGL in GLWrapper C++/CLI project which implements very basic GLCanvas class. Finally in C# was created GLGraphics class which holds reference to GLCanvas and implements IGraphics interface.
+System.Drawing.Graphics is sealed class so it cannot be inherited. There also doesn't exist any interface for drawing. First thing I have done is to add interface with every public method Graphics has, this lies in file GraphicsImplementation/IGraphics.cs. Then I created very simple wrapper for OpenGL in GLWrapper C++/CLI project which implements very basic GLCanvas class. Finally in C# was created GLGraphics class which holds reference to GLCanvas and implements IGraphics interface.
 
 ## How to use it in my project?
 
