@@ -1380,12 +1380,14 @@ namespace GraphicsImplementation
 
         public void MultiplyTransform(Matrix matrix)
         {
-            throw new NotImplementedException();
+            _transform.Multiply(matrix);
+            Transform = _transform;
         }
 
         public void MultiplyTransform(Matrix matrix, MatrixOrder order)
         {
-            throw new NotImplementedException();
+            _transform.Multiply(matrix, order);
+            Transform = _transform;
         }
 
         public void ReleaseHdc()
@@ -1405,7 +1407,7 @@ namespace GraphicsImplementation
 
         public void ResetClip()
         {
-            throw new NotImplementedException();
+            g.ResetClip();
         }
 
         public void ResetTransform()
@@ -1460,12 +1462,23 @@ namespace GraphicsImplementation
 
         public void SetClip(Rectangle rect)
         {
-            throw new NotImplementedException();
+            PointF currentScale = g.GlobalScale;
+            rect.X = (int)Math.Round(rect.X * currentScale.X);
+            rect.Y = (int)Math.Round(rect.Y * currentScale.Y);
+            rect.Width = (int)Math.Round(rect.Width * currentScale.X);
+            rect.Height = (int)Math.Round(rect.Height * currentScale.Y);
+            g.SetClip(rect);   
         }
 
         public void SetClip(RectangleF rect)
         {
-            throw new NotImplementedException();
+            Rectangle clipRect = new Rectangle();
+            PointF currentScale = g.GlobalScale;
+            clipRect.X = (int)Math.Round(rect.X * currentScale.X);
+            clipRect.Y = (int)Math.Round(rect.Y * currentScale.Y);
+            clipRect.Width = (int)Math.Round(rect.Width * currentScale.X);
+            clipRect.Height = (int)Math.Round(rect.Height * currentScale.Y);
+            g.SetClip(clipRect);
         }
 
         public void SetClip(Graphics g, CombineMode combineMode)

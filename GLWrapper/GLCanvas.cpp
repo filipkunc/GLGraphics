@@ -342,4 +342,50 @@ namespace GLWrapper
 		Identity();
 		matrix->MultMatrix();
 	}
+
+	void GLCanvas::SetClip(System::Drawing::Rectangle rect)
+	{
+		glPopMatrix();
+
+		float offsetY = rect.Y;
+
+		rect.Y = _size.Height - rect.Bottom;
+		
+		glViewport(rect.X, rect.Y, rect.Width, rect.Height);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(rect.Left, rect.Right, rect.Top - offsetY, rect.Bottom - offsetY, -1.0f, 1.0f);
+		
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glTranslatef(0.0f, rect.Bottom, 0);
+		glScalef(1, -1, 1);
+
+		glTranslatef(0.5f, 0.5f, 0.0f);
+		glPushMatrix();
+		glScalef(_globalScale.X, _globalScale.Y, 1.0f);		
+	}
+
+	void GLCanvas::ResetClip()
+	{
+		glPopMatrix();
+
+		glViewport(0, 0, _size.Width, _size.Height);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0f, _size.Width, 0.0f, _size.Height, -1.0f, 1.0f);
+		
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glTranslatef(0.0f, _size.Height, 0);
+		glScalef(1, -1, 1);
+
+		glTranslatef(0.5f, 0.5f, 0.0f);
+		glPushMatrix();
+		glScalef(_globalScale.X, _globalScale.Y, 1.0f);		
+	}
 }

@@ -10,7 +10,6 @@ namespace GLWrapper
 		HDC deviceContext;
 		HGLRC glRenderingContext;
 		GLView ^sharedContextView;
-		PointF viewOffset;
 		GLCanvas ^glCanvas;
 		bool glEnabled;
 		bool neverInitGL;
@@ -39,14 +38,6 @@ namespace GLWrapper
 		{ 
 			GLView ^get();
 			void set(GLView ^value); 
-		}
-
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility::Hidden)]
-		property PointF ViewOffset
-		{
-			PointF get() { return viewOffset; }
-			void set(PointF value) { viewOffset = value; }
 		}
 
 		[Browsable(false)]

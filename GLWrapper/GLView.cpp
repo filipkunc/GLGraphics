@@ -12,8 +12,6 @@ namespace GLWrapper
 		glRenderingContext = nullptr;
 		sharedContextView = nullptr;
 		glCanvas = nullptr;
-		viewOffset.X = 0.0f;
-		viewOffset.Y = 0.0f;
 		glEnabled = true;
 		neverInitGL = false;
 	}
@@ -166,7 +164,7 @@ namespace GLWrapper
 		glTranslatef((float)-rect.X, (float)rect.Y + (float)rect.Height, 0);
 		glScalef(1, -1, 1);
 
-		glTranslatef(viewOffset.X + 0.5f, viewOffset.Y + 0.5f, 0.0f);
+		glTranslatef(0.5f, 0.5f, 0.0f);
 	}
 
 	void GLView::DrawGL(PaintEventArgs ^paintArgs)

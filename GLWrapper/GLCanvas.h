@@ -52,6 +52,9 @@ namespace GLWrapper
 		void DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed);
 
 		void Identity();
-		void Transform(GLMatrix2D ^matrix);		
+		void Transform(GLMatrix2D ^matrix);
+
+		void SetClip(System::Drawing::Rectangle rect);
+		void ResetClip();
 	};
 }
