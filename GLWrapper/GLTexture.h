@@ -1,5 +1,7 @@
 #pragma once
 
+using namespace System::Collections::Generic;
+
 typedef struct
 {
 	GLint x, y;
@@ -38,5 +40,7 @@ namespace GLWrapper
 
 		void Draw(Point position);
 		void Draw(PointF position);
+
+		void DrawGlyphs(List<RectangleF> ^glyphDst, List<System::Drawing::Rectangle> ^glyphSrc);
 	};
 }

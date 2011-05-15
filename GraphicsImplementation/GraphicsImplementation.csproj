@@ -49,6 +49,8 @@
   <ItemGroup>
     <Compile Include="GDIGraphics.cs" />
     <Compile Include="GLGraphics.cs" />
+    <Compile Include="GlyphTextureCache.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="IGraphics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

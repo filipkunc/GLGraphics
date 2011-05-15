@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "GLTexture.h"
 
+#include <vector>
+
+std::vector<GLVertex> _glyphVertices;
+
 void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, int height, bool convertToAlpha)
 {
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -36,8 +40,8 @@ void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, i
 			throw "Unsupported texture format";
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
@@ -133,7 +137,6 @@ namespace GLWrapper
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &vertices->s);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
@@ -146,5 +149,43 @@ namespace GLWrapper
 	void GLTexture::Draw(PointF position)
 	{
 		Draw(RectangleF(position, SizeF(originalWidth, originalHeight)));
+	}
+
+	void GLTexture::DrawGlyphs(List<RectangleF> ^glyphDst, List<System::Drawing::Rectangle> ^glyphSrc)
+	{
+		float oos = 1.0f / (float)width;
+		float oot = 1.0f / (float)height;
+
+		_glyphVertices.clear();
+
+		if (glyphDst->Count <= 0)
+			return;
+
+		for (int i = 0; i < glyphDst->Count; i++)
+		{
+			RectangleF dstRect = glyphDst[i];
+			System::Drawing::Rectangle srcCoords = glyphSrc[i];
+			RectangleF srcRect = RectangleF(srcCoords.X * oos, srcCoords.Y * oot, srcCoords.Width * oos, srcCoords.Height * oot);
+			
+			GLVertex topLeft	 =	{ dstRect.X,					dstRect.Y,						srcRect.X,					srcRect.Y,					}; // 0
+			GLVertex topRight	 =	{ dstRect.X + dstRect.Width,	dstRect.Y,						srcRect.X + srcRect.Width,	srcRect.Y,					}; // 1
+			GLVertex bottomLeft	 =	{ dstRect.X,					dstRect.Y + dstRect.Height,		srcRect.X,					srcRect.Y + srcRect.Height,	}; // 2
+			GLVertex bottomRight =  { dstRect.X + dstRect.Width,	dstRect.Y + dstRect.Height,		srcRect.X + srcRect.Width,	srcRect.Y + srcRect.Height,	}; // 3
+		
+			_glyphVertices.push_back(topLeft);
+			_glyphVertices.push_back(topRight);
+			_glyphVertices.push_back(bottomRight);
+			_glyphVertices.push_back(bottomLeft);
+		}
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].x);	
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].s);
+		glDrawArrays(GL_QUADS, 0, _glyphVertices.size());
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 }

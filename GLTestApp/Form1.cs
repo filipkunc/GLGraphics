@@ -17,6 +17,8 @@ namespace GLTestApp
 {
     public partial class Form1 : Form
     {
+        GlyphTextureCache _glyphCache;
+
         public Form1()
         {
             InitializeComponent();
@@ -54,55 +56,21 @@ namespace GLTestApp
 
         void Draw(IGraphics g)
         {
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.PageUnit = GraphicsUnit.Millimeter;
-
-            Rectangle clip = new Rectangle(30, 20, 150, 120);
-
-            g.SetClip(clip);
-
-            List<PointF> points = new List<PointF>();
-
-            for (float x = 0.0f; x < (float)Math.PI * 6.0f; x += 0.01f)
+            if (_glyphCache == null)
             {
-                points.Add(new PointF(x * (float)Math.Cos(x), x * (float)Math.Sin(x)));
+                _glyphCache = new GlyphTextureCache();
             }
 
-            Matrix m = new Matrix();
+            string text = textBox1.Text;
 
-            for (int y = 0; y < 5; y++)
+            if (g is GLGraphics)
             {
-                for (int x = 0; x < 5; x++)
-                {
-                    m.Reset();
-                    m.Translate(x * 30.0f + 20.0f, y * 30.0f + 20.0f);
-                    g.Transform = m;
-                    g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());
-                }
+                GLGraphics gl = g as GLGraphics;
+                gl.Canvas.CurrentColor = Color.White;
             }
-
-            g.ResetTransform();
-
-            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 1.0f, 100.0f, 20.0f));
-            
-            g.DrawRectangle(new Pen(Color.Black, 0.0f), new Rectangle(10, 10, 50, 100));
-
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;
-
-            RectangleF rect = new RectangleF(50.0f, 50.0f, 200.0f, 100.0f);
-
-            g.FillRectangle(Brushes.Green, rect.X, rect.Y, rect.Width, rect.Height);
-            g.DrawString("Test string", this.Font, Brushes.Black, rect, sf);
-
-            g.ResetClip();
-
-            g.DrawString("Test string", this.Font, Brushes.Purple, new RectangleF(1.0f, 20.0f, 100.0f, 20.0f));            
-
-            clip.Width--;
-            clip.Height--;
-            g.DrawRectangle(Pens.Black, clip.X, clip.Y, clip.Width, clip.Height);
-        }
+            _glyphCache.DrawString(g, text, this.Font, new PointF(10.0f, 40.0f));
+            if (g is GDIGraphics)
+                g.DrawString(text, this.Font, Brushes.Black, new PointF(10.0f, 80.0f));
+        }                
     }    
 }

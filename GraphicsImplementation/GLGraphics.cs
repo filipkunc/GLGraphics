@@ -22,40 +22,7 @@ namespace GraphicsImplementation
 
     public class GLGraphics : IGraphics
     {
-        private static int NextPow2(int n)
-        {
-            int x = 2;
-            while (x < n)
-                x <<= 1;
-            return x;
-        }
-
-        private static bool FloatEquals(float a, float b)
-        {
-            if (Math.Abs(a - b) < 0.01f)
-                return true;
-            return false;
-        }
-
-        #region Texture Cache
-
-        private static GLTexture GdiToTexture(Color backColor, Size originalSize, Action<Graphics> draw)
-        {
-            Size power2Size = new Size(NextPow2(originalSize.Width), NextPow2(originalSize.Height));
-            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    if (backColor != Color.Transparent)
-                        g.Clear(backColor);
-                    draw(g);                    
-                }
-                if (backColor != Color.Transparent)
-                    bitmap.MakeTransparent(backColor);
-                GLTexture texture = new GLTexture(bitmap, originalSize.Width, originalSize.Height);
-                return texture;
-            }
-        }
+        #region Texture Cache       
 
         static Dictionary<object, GLTexture> _textureCache = new Dictionary<object, GLTexture>();
         const int MaxCachedTextures = 100;
@@ -78,7 +45,7 @@ namespace GraphicsImplementation
             {
                 ClearTexturesIfNeeded();
 
-                texture = GdiToTexture(backColor, originalSize, draw);
+                texture = Helpers.GdiToTexture(backColor, originalSize, draw);
                 _textureCache.Add(key, texture);
             }
             return texture;
@@ -146,6 +113,8 @@ namespace GraphicsImplementation
         {
             g = canvas;
         }
+
+        public GLCanvas Canvas { get { return g; } }
 
         public Region Clip
         {
@@ -1183,7 +1152,7 @@ namespace GraphicsImplementation
             {
                 LinearGradientBrush gradient = (LinearGradientBrush)brush;
                 Color[] colors = new Color[4];
-                if (FloatEquals(gradient.Transform.Elements[2], -0.5f))
+                if (Helpers.FloatEquals(gradient.Transform.Elements[2], -0.5f))
                 {
                     colors[0] = gradient.LinearColors[0];
                     colors[1] = gradient.LinearColors[0];
