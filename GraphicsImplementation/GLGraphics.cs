@@ -22,31 +22,41 @@ namespace GraphicsImplementation
 
     public class GLGraphics : IGraphics
     {
-        #region Texture Cache       
+        #region Texture Cache
 
-        static Dictionary<object, GLTexture> _textureCache = new Dictionary<object, GLTexture>();
+        static Dictionary<object, GLTexture> _textureCacheDictionary = new Dictionary<object, GLTexture>();
+        static Dictionary<object, GlyphTextureCache> _glyphCacheDictionary = new Dictionary<object, GlyphTextureCache>();
         const int MaxCachedTextures = 100;
 
         private static void ClearTexturesIfNeeded()
         {
-            if (_textureCache.Count > MaxCachedTextures)
+            if (_textureCacheDictionary.Count > MaxCachedTextures)
             {
-                foreach (var texture in _textureCache.Values)
+                foreach (var texture in _textureCacheDictionary.Values)
                     texture.Dispose();
 
-                _textureCache.Clear();
+                _textureCacheDictionary.Clear();
+            }
+
+            if (_glyphCacheDictionary.Count > MaxCachedTextures)
+            {
+                foreach (var glyphCache in _glyphCacheDictionary.Values)
+                {
+                    glyphCache.Dispose();
+                }
+                _glyphCacheDictionary.Clear();
             }
         }
 
         private static GLTexture GetCachedTexture(object key, Color backColor, Size originalSize, Action<Graphics> draw)
         {
             GLTexture texture = null;
-            if (!_textureCache.TryGetValue(key, out texture))
+            if (!_textureCacheDictionary.TryGetValue(key, out texture))
             {
                 ClearTexturesIfNeeded();
 
                 texture = Helpers.GdiToTexture(backColor, originalSize, draw);
-                _textureCache.Add(key, texture);
+                _textureCacheDictionary.Add(key, texture);
             }
             return texture;
         }
@@ -57,35 +67,21 @@ namespace GraphicsImplementation
             return GetCachedTexture(image, Color.Transparent, image.Size, gdi => gdi.DrawImageUnscaled(image, Point.Empty));
         }
 
-        private static GLTexture GetCachedTexture(string s, Font font, Color backColor, Brush brush, SizeF layoutSize, StringFormat stringFormat)
+        private static GlyphTextureCache GetGlyphCache(Font font, Color backColor, Brush brush)
         {
-            Size originalSize = layoutSize.ToSize();
-            if (originalSize.IsEmpty)
-                originalSize = TextRenderer.MeasureText(s, font);
-
             SolidBrush solid = (SolidBrush)brush;
 
-            object key;
+            object key = new { font, backColor, solid.Color };
 
-            if (stringFormat != null)
-                key = new { s, font, solid.Color, stringFormat.Alignment, stringFormat.LineAlignment, backColor };
-            else
-                key = new { s, font, solid.Color, backColor };
+            GlyphTextureCache glyphCache = null;
+            if (!_glyphCacheDictionary.TryGetValue(key, out glyphCache))
+            {
+                ClearTexturesIfNeeded();
 
-            return GetCachedTexture(key, backColor, originalSize, gdi =>
-                {
-                    if (layoutSize.IsEmpty)
-                    {
-                        gdi.DrawString(s, font, brush, PointF.Empty);
-                    }
-                    else
-                    {
-                        if (stringFormat != null)
-                            gdi.DrawString(s, font, brush, new RectangleF(PointF.Empty, layoutSize), stringFormat);
-                        else
-                            gdi.DrawString(s, font, brush, new RectangleF(PointF.Empty, layoutSize));
-                    }
-                });
+                glyphCache = new GlyphTextureCache(backColor);
+                _glyphCacheDictionary.Add(key, glyphCache);
+            }
+            return glyphCache;
         }
 
         #endregion
@@ -778,6 +774,39 @@ namespace GraphicsImplementation
             DrawString(s, font, brush, new RectangleF(point, Size.Empty), format);
         }
 
+        private void UpdateTextLocation(ref PointF textLocation, RectangleF rect, Size size, StringFormat format)
+        {
+            switch (format.Alignment)
+            {
+                case StringAlignment.Center:
+                    textLocation.X += (float)Math.Round(rect.Width / 2.0f, MidpointRounding.AwayFromZero);
+                    textLocation.X -= (float)Math.Round(size.Width / 2.0, MidpointRounding.AwayFromZero);
+                    break;
+                case StringAlignment.Far:
+                    textLocation.X = rect.Right;
+                    textLocation.X -= size.Width;
+                    break;
+                case StringAlignment.Near:
+                default:
+                    break;
+            }
+
+            switch (format.LineAlignment)
+            {
+                case StringAlignment.Center:
+                    textLocation.Y += (float)Math.Round(rect.Height / 2.0f, MidpointRounding.AwayFromZero);
+                    textLocation.Y -= (float)Math.Round(size.Height / 2.0, MidpointRounding.AwayFromZero);
+                    break;
+                case StringAlignment.Far:
+                    textLocation.X = rect.Bottom;
+                    textLocation.Y -= size.Height;
+                    break;
+                case StringAlignment.Near:
+                default:
+                    break;
+            }
+        }
+
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
         {
             PointF currentScale = g.GlobalScale;
@@ -796,45 +825,21 @@ namespace GraphicsImplementation
                 layoutRectangle.Height *= currentScale.Y;
             }
 
+            Size size = TextRenderer.MeasureText(s, font);
+            
+            if (format != null)
+                UpdateTextLocation(ref textLocation, layoutRectangle, size, format);
+
+            RectangleF textRectangle = new RectangleF(textLocation, new SizeF(size.Width, size.Height));
+
             Color backColor = g.BackColor;
 
             foreach (var rectFill in _rectFills)
             {
-                if (layoutRectangle.IntersectsWith(rectFill.Rect))
+                if (textRectangle.IntersectsWith(rectFill.Rect))
                 {
                     backColor = rectFill.Fill;
                     break;
-                }
-            }
-
-            var texture = GetCachedTexture(s, font, backColor, brush, layoutRectangle.Size, format);
-
-            if (layoutRectangle.Size.IsEmpty && format != null)
-            {
-                switch (format.Alignment)
-                {
-                    case StringAlignment.Center:
-                        textLocation.X -= (float)Math.Round(texture.OriginalWidth / 2.0, MidpointRounding.AwayFromZero);
-                        break;
-                    case StringAlignment.Far:
-                        textLocation.X -= texture.OriginalWidth;
-                        break;
-                    case StringAlignment.Near:
-                    default:
-                        break;
-                }
-
-                switch (format.LineAlignment)
-                {
-                    case StringAlignment.Center:
-                        textLocation.Y -= (float)Math.Round(texture.OriginalHeight / 2.0, MidpointRounding.AwayFromZero);
-                        break;
-                    case StringAlignment.Far:
-                        textLocation.Y -= texture.OriginalHeight;
-                        break;
-                    case StringAlignment.Near:
-                    default:
-                        break;
                 }
             }
 
@@ -843,8 +848,10 @@ namespace GraphicsImplementation
             textLocation.X -= 0.5f;
             textLocation.Y -= 0.5f;
 
-            texture.Draw(textLocation);            
-            
+            var glyphCache = GetGlyphCache(font, backColor, brush);
+            glyphCache.DrawString(this, s, font, brush, textLocation);
+            //glyphCache.DrawTexture(g);
+
             g.Texture2DEnabled = false;
             g.GlobalScale = currentScale;
         }
@@ -1175,12 +1182,12 @@ namespace GraphicsImplementation
         private void AddRectFill(RectangleF rect)
         {
             PointF currentScale = g.GlobalScale;
-            
+
             rect.X *= currentScale.X;
             rect.Y *= currentScale.Y;
             rect.Width *= currentScale.X;
-            rect.Height *= currentScale.Y;            
-            
+            rect.Height *= currentScale.Y;
+
             _rectFills.Add(new RectFill(rect, g.CurrentColor));
         }
 
@@ -1198,12 +1205,12 @@ namespace GraphicsImplementation
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
         {
-            FillRectangle(brush, new RectangleF(x, y, width, height));            
+            FillRectangle(brush, new RectangleF(x, y, width, height));
         }
 
         public void FillRectangle(Brush brush, int x, int y, int width, int height)
         {
-            FillRectangle(brush, new Rectangle(x, y, width, height));            
+            FillRectangle(brush, new Rectangle(x, y, width, height));
         }
 
         public void FillRectangles(Brush brush, Rectangle[] rects)
@@ -1436,7 +1443,7 @@ namespace GraphicsImplementation
             rect.Y = (int)Math.Round(rect.Y * currentScale.Y);
             rect.Width = (int)Math.Round(rect.Width * currentScale.X);
             rect.Height = (int)Math.Round(rect.Height * currentScale.Y);
-            g.SetClip(rect);   
+            g.SetClip(rect);
         }
 
         public void SetClip(RectangleF rect)

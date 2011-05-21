@@ -17,8 +17,6 @@ namespace GLTestApp
 {
     public partial class Form1 : Form
     {
-        GlyphTextureCache _glyphCache;
-
         public Form1()
         {
             InitializeComponent();
@@ -33,7 +31,8 @@ namespace GLTestApp
             watch.Start();
             glView1.Refresh();
             watch.Stop();
-            label1.Text = string.Format("FPS: {0}", 1.0 / watch.Elapsed.TotalSeconds);
+
+            label1.Text = string.Format("ms: {0}", watch.Elapsed.TotalMilliseconds);            
         }
 
         private void glView1_Paint(object sender, PaintEventArgs e)
@@ -56,21 +55,50 @@ namespace GLTestApp
 
         void Draw(IGraphics g)
         {
-            if (_glyphCache == null)
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            StringFormat sf = new StringFormat();
+            Rectangle rect = new Rectangle(50, 50, 400, 200);
+
+            g.DrawRectangle(Pens.Black, rect);
+
+            g.DrawString(label1.Text, this.Font, Brushes.Red, rect, sf);
+
+            sf.Alignment = StringAlignment.Center;
+
+            g.FillRectangle(Brushes.Black, new Rectangle(180, 50, 140, 40));
+            g.DrawString(label1.Text, this.Font, Brushes.Yellow, rect, sf);
+
+            sf.Alignment = StringAlignment.Far;
+            
+            g.DrawString(label1.Text, this.Font, Brushes.Green, rect, sf);
+
+            sf.Alignment = StringAlignment.Near;
+            sf.LineAlignment = StringAlignment.Center;
+
+            g.DrawString(label1.Text, this.Font, Brushes.Blue, rect, sf);
+
+            List<PointF> points = new List<PointF>();
+
+            for (float x = 0.0f; x < (float)Math.PI * 6.0f; x += 0.01f)
             {
-                _glyphCache = new GlyphTextureCache();
+                points.Add(new PointF(x * (float)Math.Cos(x), x * (float)Math.Sin(x)));
             }
 
-            string text = textBox1.Text;
+            Matrix m = new Matrix();
 
-            if (g is GLGraphics)
+            for (int y = 0; y < 5; y++)
             {
-                GLGraphics gl = g as GLGraphics;
-                gl.Canvas.CurrentColor = Color.White;
+                for (int x = 0; x < 5; x++)
+                {
+                    m.Reset();
+                    m.Translate(x * 50.0f + 200.0f, y * 50.0f + 200.0f);
+                    g.Transform = m;
+                    g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());
+                }
             }
-            _glyphCache.DrawString(g, text, this.Font, new PointF(10.0f, 40.0f));
-            if (g is GDIGraphics)
-                g.DrawString(text, this.Font, Brushes.Black, new PointF(10.0f, 80.0f));
-        }                
+
+            g.ResetTransform();
+        }
     }    
 }
