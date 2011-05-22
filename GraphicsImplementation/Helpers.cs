@@ -9,6 +9,26 @@ namespace GraphicsImplementation
 {
     public static class Helpers
     {
+        public static RectangleF ScaleRect(this RectangleF rect, PointF scale)
+        {
+            return new RectangleF(rect.X * scale.X, rect.Y * scale.Y, rect.Width * scale.X, rect.Height * scale.Y);
+        }
+
+        public static PointF ToPointF(this Point point)
+        {
+            return new PointF(point.X, point.Y);
+        }
+
+        public static SizeF ToSizeF(this Size size)
+        {
+            return new SizeF(size.Width, size.Height);
+        }
+
+        public static RectangleF ToRectangleF(this Rectangle rect)
+        {
+            return new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+
         public static int NextPow2(int n)
         {
             int x = 2;

@@ -12,14 +12,6 @@ using System.Diagnostics;
 
 namespace GraphicsImplementation
 {
-    static class GraphicsExtensions
-    {
-        public static RectangleF ToRectangleF(this Rectangle rect)
-        {
-            return new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
-        }
-    }
-
     public class GLGraphics : IGraphics
     {
         #region Texture Cache
@@ -774,7 +766,7 @@ namespace GraphicsImplementation
             DrawString(s, font, brush, new RectangleF(point, Size.Empty), format);
         }
 
-        private void UpdateTextLocation(ref PointF textLocation, RectangleF rect, Size size, StringFormat format)
+        private void UpdateTextLocation(ref PointF textLocation, RectangleF rect, SizeF size, StringFormat format)
         {
             switch (format.Alignment)
             {
@@ -815,22 +807,17 @@ namespace GraphicsImplementation
             g.CurrentColor = Color.White;
             g.Texture2DEnabled = true;
 
-            PointF textLocation = layoutRectangle.Location;
-
+            SizeF textSize = TextRenderer.MeasureText(s, font).ToSizeF();
+            
             if (this._pageUnit == GraphicsUnit.Millimeter)
-            {
-                textLocation.X *= currentScale.X;
-                textLocation.Y *= currentScale.Y;
-                layoutRectangle.Width *= currentScale.X;
-                layoutRectangle.Height *= currentScale.Y;
-            }
+                layoutRectangle = layoutRectangle.ScaleRect(currentScale);
 
-            Size size = TextRenderer.MeasureText(s, font);
+            PointF textLocation = layoutRectangle.Location;            
             
             if (format != null)
-                UpdateTextLocation(ref textLocation, layoutRectangle, size, format);
+                UpdateTextLocation(ref textLocation, layoutRectangle, textSize, format);                
 
-            RectangleF textRectangle = new RectangleF(textLocation, new SizeF(size.Width, size.Height));
+            RectangleF textRectangle = new RectangleF(textLocation, textSize);
 
             Color backColor = g.BackColor;
 
@@ -1182,12 +1169,7 @@ namespace GraphicsImplementation
         private void AddRectFill(RectangleF rect)
         {
             PointF currentScale = g.GlobalScale;
-
-            rect.X *= currentScale.X;
-            rect.Y *= currentScale.Y;
-            rect.Width *= currentScale.X;
-            rect.Height *= currentScale.Y;
-
+            rect = rect.ScaleRect(currentScale);            
             _rectFills.Add(new RectFill(rect, g.CurrentColor));
         }
 

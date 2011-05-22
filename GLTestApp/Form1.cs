@@ -55,6 +55,7 @@ namespace GLTestApp
 
         void Draw(IGraphics g)
         {
+            //g.PageUnit = GraphicsUnit.Millimeter;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             StringFormat sf = new StringFormat();
