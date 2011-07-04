@@ -17,6 +17,8 @@ namespace GLTestApp
 {
     public partial class Form1 : Form
     {
+        Bitmap bm;
+
         public Form1()
         {
             InitializeComponent();
@@ -57,6 +59,8 @@ namespace GLTestApp
         {
             //g.PageUnit = GraphicsUnit.Millimeter;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            g.DrawString(g.DpiX.ToString(), this.Font, Brushes.Black, new PointF(2, 2));
 
             StringFormat sf = new StringFormat();
             Rectangle rect = new Rectangle(50, 50, 400, 200);
@@ -100,6 +104,19 @@ namespace GLTestApp
             }
 
             g.ResetTransform();
+
+            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(50, 50, 24, 24));
+            g.DrawImage(Resources.navigate_down2, new Rectangle(50, 50, 24, 24));
+
+            if (bm == null)
+            {
+                ColorMatrix matrix = new ColorMatrix();
+                matrix.Matrix33 = 0.4f; //opacity 0 = completely transparent, 1 = completely opaque
+                bm = Helpers.BitmapFromImageAndColorMatrix(Resources.navigate_down2, matrix);
+            }
+
+            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(100, 50, 24, 24));
+            g.DrawImage(bm, new Rectangle(100, 50, 24, 24));
         }
     }    
 }

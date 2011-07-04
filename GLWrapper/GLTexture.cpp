@@ -40,10 +40,36 @@ void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, i
 			throw "Unsupported texture format";
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+}
+
+void AddRectangles(RectangleF dstRect, RectangleF srcRect)
+{
+	GLVertex topLeft	 =	{ dstRect.X,					dstRect.Y,						srcRect.X,					srcRect.Y,					}; // 0
+	GLVertex topRight	 =	{ dstRect.X + dstRect.Width,	dstRect.Y,						srcRect.X + srcRect.Width,	srcRect.Y,					}; // 1
+	GLVertex bottomLeft	 =	{ dstRect.X,					dstRect.Y + dstRect.Height,		srcRect.X,					srcRect.Y + srcRect.Height,	}; // 2
+	GLVertex bottomRight =  { dstRect.X + dstRect.Width,	dstRect.Y + dstRect.Height,		srcRect.X + srcRect.Width,	srcRect.Y + srcRect.Height,	}; // 3
+
+	_glyphVertices.push_back(topLeft);
+	_glyphVertices.push_back(topRight);
+	_glyphVertices.push_back(bottomRight);
+	_glyphVertices.push_back(bottomLeft);
+}
+
+void DrawGlyphVertices(unsigned int textureID)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].x);	
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].s);
+	glDrawArrays(GL_QUADS, 0, _glyphVertices.size());
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 namespace GLWrapper
@@ -78,7 +104,7 @@ namespace GLWrapper
 	
 	void GLTexture::Update(Bitmap ^bitmap, int originalWidth, int originalHeight)
 	{
-		System::Drawing::Rectangle rect = System::Drawing::Rectangle(Point::Empty, bitmap->Size);
+		System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, bitmap->Width, bitmap->Height);
         BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
 
 		::UpdateTexture((GLubyte *)data->Scan0.ToPointer(), 4, textureID, rect.Width, rect.Height, false);
@@ -92,63 +118,17 @@ namespace GLWrapper
 		this->originalHeight = originalHeight;
 	}
 
-	void GLTexture::Draw(System::Drawing::Rectangle rect)
+	void GLTexture::Draw(RectangleF dstRect, RectangleF srcRect)
 	{
-		float textureX = (float)rect.Width / (float)width;
-		float textureY = (float)rect.Height / (float)height;
+		float oos = 1.0f / (float)width;
+		float oot = 1.0f / (float)height;
 
-		const GLIntVertex vertices[] = 
-		{
-			{ rect.X,				rect.Y,						0,			0, }, // 0
-			{ rect.X + rect.Width,	rect.Y,						textureX,	0, }, // 1
-			{ rect.X,				rect.Y + rect.Height,		0,			textureY, }, // 2
-			{ rect.X + rect.Width,	rect.Y + rect.Height,		textureX,	textureY, }, // 3
-		};
+		_glyphVertices.clear();
 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_INT, sizeof(GLIntVertex), &vertices->x);	
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GLIntVertex), &vertices->s);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		srcRect = RectangleF(srcRect.X * oos, srcRect.Y * oot, srcRect.Width * oos, srcRect.Height * oot);
 
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);	
-	}
-
-	void GLTexture::Draw(RectangleF rect)
-	{
-		float textureX = (float)rect.Width / (float)width;
-		float textureY = (float)rect.Height / (float)height;
-
-		const GLVertex vertices[] = 
-		{
-			{ rect.X,				rect.Y,						0,			0, }, // 0
-			{ rect.X + rect.Width,	rect.Y,						textureX,	0, }, // 1
-			{ rect.X,				rect.Y + rect.Height,		0,			textureY, }, // 2
-			{ rect.X + rect.Width,	rect.Y + rect.Height,		textureX,	textureY, }, // 3
-		};
-
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &vertices->x);	
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &vertices->s);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-	}
-
-	void GLTexture::Draw(Point position)
-	{
-		Draw(System::Drawing::Rectangle(position, Size(originalWidth, originalHeight)));
-	}
-
-	void GLTexture::Draw(PointF position)
-	{
-		Draw(RectangleF(position, SizeF(originalWidth, originalHeight)));
+		::AddRectangles(dstRect, srcRect);
+		::DrawGlyphVertices(textureID);
 	}
 
 	void GLTexture::DrawGlyphs(List<RectangleF> ^glyphDst, List<System::Drawing::Rectangle> ^glyphSrc)
@@ -167,25 +147,9 @@ namespace GLWrapper
 			System::Drawing::Rectangle srcCoords = glyphSrc[i];
 			RectangleF srcRect = RectangleF(srcCoords.X * oos, srcCoords.Y * oot, srcCoords.Width * oos, srcCoords.Height * oot);
 			
-			GLVertex topLeft	 =	{ dstRect.X,					dstRect.Y,						srcRect.X,					srcRect.Y,					}; // 0
-			GLVertex topRight	 =	{ dstRect.X + dstRect.Width,	dstRect.Y,						srcRect.X + srcRect.Width,	srcRect.Y,					}; // 1
-			GLVertex bottomLeft	 =	{ dstRect.X,					dstRect.Y + dstRect.Height,		srcRect.X,					srcRect.Y + srcRect.Height,	}; // 2
-			GLVertex bottomRight =  { dstRect.X + dstRect.Width,	dstRect.Y + dstRect.Height,		srcRect.X + srcRect.Width,	srcRect.Y + srcRect.Height,	}; // 3
-		
-			_glyphVertices.push_back(topLeft);
-			_glyphVertices.push_back(topRight);
-			_glyphVertices.push_back(bottomRight);
-			_glyphVertices.push_back(bottomLeft);
+			::AddRectangles(dstRect, srcRect);
 		}
 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].x);	
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].s);
-		glDrawArrays(GL_QUADS, 0, _glyphVertices.size());
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
+		::DrawGlyphVertices(textureID);
 	}
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using GLWrapper;
+using System.Drawing.Imaging;
 
 namespace GraphicsImplementation
 {
@@ -62,5 +63,26 @@ namespace GraphicsImplementation
             }
         }
 
+        public static Bitmap BitmapFromImageAndColorMatrix(Image image, ColorMatrix matrix)
+        {
+            ImageAttributes attributes = new ImageAttributes();
+            attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+            Bitmap bitmap = new Bitmap(image);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(Color.Transparent);
+
+                Rectangle rc = new Rectangle(0, 0, image.Width, image.Height);
+
+                g.DrawImage(image, rc,
+                    rc.X, rc.Y, rc.Width, rc.Height,
+                    GraphicsUnit.Pixel, attributes);
+            }
+
+            bitmap.SetResolution(72, 72);
+
+            return bitmap;
+        }
     }
 }

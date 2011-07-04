@@ -91,7 +91,9 @@ namespace GraphicsImplementation
 
         public void DrawTexture(GLCanvas g)
         {
-            _texture.Draw(Point.Empty);
+            RectangleF rc = new RectangleF(0, 0, _texture.OriginalWidth, _texture.OriginalHeight);
+
+            _texture.Draw(rc, rc);
         }
 
         public void DrawString(IGraphics g, string text, Font font, Brush brush, PointF location)

@@ -465,7 +465,13 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, Point point)
         {
-            DrawTexture(image, texture => texture.Draw(point));
+            DrawTexture(image, texture => 
+                {
+                    RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
+                    RectangleF dstRect = srcRect;
+                    dstRect.Offset(point);
+                    texture.Draw(dstRect, srcRect);
+                });
         }
 
         public void DrawImage(Image image, Point[] destPoints)
@@ -475,7 +481,13 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, PointF point)
         {
-            DrawTexture(image, texture => texture.Draw(point));
+            DrawTexture(image, texture =>
+            {
+                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
+                RectangleF dstRect = srcRect;
+                dstRect.Offset(point);
+                texture.Draw(dstRect, srcRect);
+            });
         }
 
         public void DrawImage(Image image, PointF[] destPoints)
@@ -485,12 +497,22 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, Rectangle rect)
         {
-            DrawTexture(image, texture => texture.Draw(rect));
+            DrawTexture(image, texture =>
+            {
+                RectangleF dstRect = rect.ToRectangleF();
+                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
+                texture.Draw(dstRect, srcRect);
+            });
         }
 
         public void DrawImage(Image image, RectangleF rect)
         {
-            DrawTexture(image, texture => texture.Draw(rect));
+            DrawTexture(image, texture =>
+            {
+                RectangleF dstRect = rect;
+                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
+                texture.Draw(dstRect, srcRect);
+            });
         }
 
         public void DrawImage(Image image, float x, float y)
@@ -590,7 +612,7 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttr)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException();    
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, Graphics.DrawImageAbort callback)

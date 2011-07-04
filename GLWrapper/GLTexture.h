@@ -35,12 +35,7 @@ namespace GLWrapper
 		~GLTexture();
 		void Update(Bitmap ^bitmap, int originalWidth, int originalHeight);
 
-		void Draw(System::Drawing::Rectangle rect);
-		void Draw(RectangleF rect);
-
-		void Draw(Point position);
-		void Draw(PointF position);
-
+		void Draw(RectangleF dstRect, RectangleF srcRect);
 		void DrawGlyphs(List<RectangleF> ^glyphDst, List<System::Drawing::Rectangle> ^glyphSrc);
 	};
 }
