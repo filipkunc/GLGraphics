@@ -47,7 +47,7 @@ namespace GLWrapper
 		
 		void FillRectangle(System::Drawing::Rectangle rect, array<Color> ^colors);
 		void FillRectangle(RectangleF rect, array<Color> ^colors);
-
+		
 		void DrawEllipse(RectangleF rect);
 		void DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed);
 

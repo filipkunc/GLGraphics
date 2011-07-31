@@ -5,6 +5,7 @@ using System.Text;
 using System.Drawing;
 using GLWrapper;
 using System.Windows.Forms;
+using System.Drawing.Text;
 
 namespace GraphicsImplementation
 {
@@ -22,27 +23,23 @@ namespace GraphicsImplementation
         Point _lastTextureCoord;
         int _maxY;
         int _lastGlyphCount;
-        Color _backColor;
 
-        public GlyphTextureCache(Color backColor)
+        public GlyphTextureCache()
         {
-            _backColor = backColor;
             _glyphCoords = new Dictionary<char, GlyphInfo>();
             _texture = new GLTexture();
             _bitmap = new Bitmap(512, 512);
-            using (Graphics g = Graphics.FromImage(_bitmap))
-            {
-                g.Clear(_backColor);
-            }
             _lastTextureCoord = new Point(1, 1);
             _lastGlyphCount = 0;
             _maxY = 1;
         }
 
-        private void AddString(string text, Font font, Brush brush)
+        private void AddString(string text, Font font, Brush brush, TextRenderingHint textRenderingHint)
         {
             using (Graphics g = Graphics.FromImage(_bitmap))
             {
+                g.TextRenderingHint = textRenderingHint;
+
                 StringFormat sf = StringFormat.GenericTypographic;
                 sf.FormatFlags = StringFormatFlags.MeasureTrailingSpaces;
 
@@ -77,7 +74,6 @@ namespace GraphicsImplementation
             {
                 using (Bitmap copy = new Bitmap(_bitmap))
                 {
-                    copy.MakeTransparent(_backColor);
                     _texture.Update(copy, _bitmap.Width, _bitmap.Height);
                 }
                 _lastGlyphCount = _glyphCoords.Count;
@@ -99,7 +95,7 @@ namespace GraphicsImplementation
         public void DrawString(IGraphics g, string text, Font font, Brush brush, PointF location)
         {
             int oldCount = _glyphCoords.Count;
-            AddString(text, font, brush);
+            AddString(text, font, brush, g.TextRenderingHint);
             if (g is GLGraphics)
                 UpdateTextureIfNeeded();
 

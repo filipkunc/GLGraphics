@@ -40,14 +40,14 @@ namespace GraphicsImplementation
             }
         }
 
-        private static GLTexture GetCachedTexture(object key, Color backColor, Size originalSize, Action<Graphics> draw)
+        private static GLTexture GetCachedTexture(object key, Size originalSize, Action<Graphics> draw)
         {
             GLTexture texture = null;
             if (!_textureCacheDictionary.TryGetValue(key, out texture))
             {
                 ClearTexturesIfNeeded();
 
-                texture = Helpers.GdiToTexture(backColor, originalSize, draw);
+                texture = Helpers.GdiToTexture(originalSize, draw);
                 _textureCacheDictionary.Add(key, texture);
             }
             return texture;
@@ -56,21 +56,33 @@ namespace GraphicsImplementation
 
         private static GLTexture GetCachedTexture(Image image)
         {
-            return GetCachedTexture(image, Color.Transparent, image.Size, gdi => gdi.DrawImageUnscaled(image, Point.Empty));
+            return GetCachedTexture(image, image.Size, gdi => 
+                {
+                    using (Bitmap bitmap = new Bitmap(image))
+                    {
+                        bitmap.SetResolution(72.0f, 72.0f);
+                        gdi.DrawImage(bitmap, Point.Empty);
+                    }
+                });
         }
 
-        private static GlyphTextureCache GetGlyphCache(Font font, Color backColor, Brush brush)
+        private static GLTexture GetCachedTexture(TextureBrush textureBrush)
+        {
+            return GetCachedTexture(textureBrush, textureBrush.Image.Size, gdi => gdi.DrawImage(textureBrush.Image, Point.Empty));
+        }
+
+        private static GlyphTextureCache GetGlyphCache(Font font, Brush brush)
         {
             SolidBrush solid = (SolidBrush)brush;
 
-            object key = new { font, backColor, solid.Color };
+            object key = new { font, solid.Color };
 
             GlyphTextureCache glyphCache = null;
             if (!_glyphCacheDictionary.TryGetValue(key, out glyphCache))
             {
                 ClearTexturesIfNeeded();
 
-                glyphCache = new GlyphTextureCache(backColor);
+                glyphCache = new GlyphTextureCache();
                 _glyphCacheDictionary.Add(key, glyphCache);
             }
             return glyphCache;
@@ -82,20 +94,6 @@ namespace GraphicsImplementation
         GraphicsUnit _pageUnit = GraphicsUnit.Pixel;
         Matrix _transform = new Matrix();
         GLMatrix2D _glTransform = new GLMatrix2D();
-
-        struct RectFill
-        {
-            public RectangleF Rect;
-            public Color Fill;
-
-            public RectFill(RectangleF rect, Color fill)
-            {
-                Rect = rect;
-                Fill = fill;
-            }
-        }
-
-        List<RectFill> _rectFills = new List<RectFill>();
 
         public GLGraphics(GLCanvas canvas)
         {
@@ -234,16 +232,12 @@ namespace GraphicsImplementation
             }
         }
 
+        TextRenderingHint _textRenderingHint = TextRenderingHint.AntiAliasGridFit;
+
         public TextRenderingHint TextRenderingHint
         {
-            get
-            {
-                return TextRenderingHint.AntiAliasGridFit;
-            }
-            set
-            {
-
-            }
+            get { return _textRenderingHint; }
+            set { _textRenderingHint = value; }
         }
 
         public Matrix Transform
@@ -794,7 +788,8 @@ namespace GraphicsImplementation
             {
                 case StringAlignment.Center:
                     textLocation.X += (float)Math.Round(rect.Width / 2.0f, MidpointRounding.AwayFromZero);
-                    textLocation.X -= (float)Math.Round(size.Width / 2.0, MidpointRounding.AwayFromZero);
+                    textLocation.X -= (float)Math.Round(size.Width / 2.0f, MidpointRounding.AwayFromZero);
+                    textLocation.X += 2.0f;
                     break;
                 case StringAlignment.Far:
                     textLocation.X = rect.Right;
@@ -809,7 +804,7 @@ namespace GraphicsImplementation
             {
                 case StringAlignment.Center:
                     textLocation.Y += (float)Math.Round(rect.Height / 2.0f, MidpointRounding.AwayFromZero);
-                    textLocation.Y -= (float)Math.Round(size.Height / 2.0, MidpointRounding.AwayFromZero);
+                    textLocation.Y -= (float)Math.Round(size.Height / 2.0f, MidpointRounding.AwayFromZero);
                     break;
                 case StringAlignment.Far:
                     textLocation.X = rect.Bottom;
@@ -843,21 +838,12 @@ namespace GraphicsImplementation
 
             Color backColor = g.BackColor;
 
-            foreach (var rectFill in _rectFills)
-            {
-                if (textRectangle.IntersectsWith(rectFill.Rect))
-                {
-                    backColor = rectFill.Fill;
-                    break;
-                }
-            }
-
             textLocation.X = (float)Math.Round(textLocation.X);
             textLocation.Y = (float)Math.Round(textLocation.Y);
             textLocation.X -= 0.5f;
             textLocation.Y -= 0.5f;
 
-            var glyphCache = GetGlyphCache(font, backColor, brush);
+            var glyphCache = GetGlyphCache(font,  brush);
             glyphCache.DrawString(this, s, font, brush, textLocation);
             //glyphCache.DrawTexture(g);
 
@@ -1188,23 +1174,23 @@ namespace GraphicsImplementation
             return null;
         }
 
-        private void AddRectFill(RectangleF rect)
-        {
-            PointF currentScale = g.GlobalScale;
-            rect = rect.ScaleRect(currentScale);            
-            _rectFills.Add(new RectFill(rect, g.CurrentColor));
-        }
-
         public void FillRectangle(Brush brush, Rectangle rect)
         {
-            g.FillRectangle(rect, ColorsFromBrush(brush));
-            AddRectFill(rect);
+            if (brush is TextureBrush)
+            {
+                TextureBrush textureBrush = (TextureBrush)brush;
+                var texture = GetCachedTexture(textureBrush);
+                texture.DrawTiled(rect);
+            }
+            else
+            {
+                g.FillRectangle(rect, ColorsFromBrush(brush));
+            }
         }
 
         public void FillRectangle(Brush brush, RectangleF rect)
         {
             g.FillRectangle(rect, ColorsFromBrush(brush));
-            AddRectFill(rect);
         }
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
@@ -1325,7 +1311,7 @@ namespace GraphicsImplementation
 
         public SizeF MeasureString(string text, Font font)
         {
-            throw new NotImplementedException();
+            return TextRenderer.MeasureText(text, font).ToSizeF();
         }
 
         public SizeF MeasureString(string text, Font font, int width)

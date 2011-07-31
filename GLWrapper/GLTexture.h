@@ -37,5 +37,6 @@ namespace GLWrapper
 
 		void Draw(RectangleF dstRect, RectangleF srcRect);
 		void DrawGlyphs(List<RectangleF> ^glyphDst, List<System::Drawing::Rectangle> ^glyphSrc);
+		void DrawTiled(System::Drawing::Rectangle rect);
 	};
 }

@@ -40,8 +40,10 @@ void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, i
 			throw "Unsupported texture format";
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);*/
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
@@ -105,7 +107,7 @@ namespace GLWrapper
 	void GLTexture::Update(Bitmap ^bitmap, int originalWidth, int originalHeight)
 	{
 		System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, bitmap->Width, bitmap->Height);
-        BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
+		BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
 
 		::UpdateTexture((GLubyte *)data->Scan0.ToPointer(), 4, textureID, rect.Width, rect.Height, false);
 
@@ -151,5 +153,30 @@ namespace GLWrapper
 		}
 
 		::DrawGlyphVertices(textureID);
+	}
+
+	void GLTexture::DrawTiled(System::Drawing::Rectangle rect)
+	{
+		_glyphVertices.clear();
+
+		/*float t = (float)originalWidth / (float)width;
+		float s = (float)originalHeight / (float)height;*/
+
+		RectangleF srcRect = RectangleF(0.0f, 0.0f, 1.0f, 1.0f);
+		RectangleF dstRect = RectangleF(0.0f, 0.0f, width, height);
+
+		for (int y = rect.Top; y < rect.Bottom; y += originalHeight)
+        {
+            for (int x = rect.Left; x < rect.Right; x += originalWidth)
+            {
+				dstRect.X = x;
+				dstRect.Y = y;
+						
+				::AddRectangles(dstRect, srcRect);				
+            }
+		}
+
+		if (_glyphVertices.size() > 0)
+			::DrawGlyphVertices(textureID);			
 	}
 }

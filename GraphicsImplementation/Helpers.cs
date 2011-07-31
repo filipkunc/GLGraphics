@@ -45,19 +45,15 @@ namespace GraphicsImplementation
             return false;
         }
 
-        public static GLTexture GdiToTexture(Color backColor, Size originalSize, Action<Graphics> draw)
+        public static GLTexture GdiToTexture(Size originalSize, Action<Graphics> draw)
         {
             Size power2Size = new Size(Helpers.NextPow2(originalSize.Width), Helpers.NextPow2(originalSize.Height));
-            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height))
+            using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height, PixelFormat.Format32bppArgb))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    if (backColor != Color.Transparent)
-                        g.Clear(backColor);
                     draw(g);
                 }
-                if (backColor != Color.Transparent)
-                    bitmap.MakeTransparent(backColor);
                 GLTexture texture = new GLTexture(bitmap, originalSize.Width, originalSize.Height);
                 return texture;
             }
@@ -68,7 +64,7 @@ namespace GraphicsImplementation
             ImageAttributes attributes = new ImageAttributes();
             attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
-            Bitmap bitmap = new Bitmap(image);
+            Bitmap bitmap = new Bitmap(image.Width, image.Height);
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 g.Clear(Color.Transparent);
@@ -79,8 +75,6 @@ namespace GraphicsImplementation
                     rc.X, rc.Y, rc.Width, rc.Height,
                     GraphicsUnit.Pixel, attributes);
             }
-
-            bitmap.SetResolution(72, 72);
 
             return bitmap;
         }
