@@ -1178,9 +1178,11 @@ namespace GraphicsImplementation
         {
             if (brush is TextureBrush)
             {
+                g.Texture2DEnabled = true;
                 TextureBrush textureBrush = (TextureBrush)brush;
                 var texture = GetCachedTexture(textureBrush);
                 texture.DrawTiled(rect);
+                g.Texture2DEnabled = false;
             }
             else
             {

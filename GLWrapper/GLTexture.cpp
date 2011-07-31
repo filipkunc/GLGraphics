@@ -63,7 +63,6 @@ void AddRectangles(RectangleF dstRect, RectangleF srcRect)
 
 void DrawGlyphVertices(unsigned int textureID)
 {
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, sizeof(GLVertex), &_glyphVertices[0].x);	
@@ -80,7 +79,6 @@ namespace GLWrapper
 	{
 		unsigned int textureID = 0;
 
-		glEnable(GL_TEXTURE_2D);
 		glGenTextures(1, &textureID);
 		this->textureID = textureID;
 	}
@@ -89,7 +87,6 @@ namespace GLWrapper
 	{
 		unsigned int textureID = 0;
 
-		glEnable(GL_TEXTURE_2D);
 		glGenTextures(1, &textureID);
 		this->textureID = textureID;
 		
