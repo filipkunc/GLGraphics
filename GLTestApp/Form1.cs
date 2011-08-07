@@ -11,13 +11,13 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Diagnostics;
 using GraphicsImplementation;
-using GLTestApp.Properties;
 
 namespace GLTestApp
 {
     public partial class Form1 : Form
     {
-        Bitmap bm;
+        Bitmap transparentBitmap;
+        TextureBrush gridBrush;
 
         public Form1()
         {
@@ -34,7 +34,7 @@ namespace GLTestApp
             glView1.Refresh();
             watch.Stop();
 
-            label1.Text = string.Format("ms: {0}", watch.Elapsed.TotalMilliseconds);            
+            label1.Text = string.Format("ms: {0}", watch.Elapsed.TotalMilliseconds);
         }
 
         private void glView1_Paint(object sender, PaintEventArgs e)
@@ -57,31 +57,46 @@ namespace GLTestApp
 
         void Draw(IGraphics g)
         {
+            //g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            if (gridBrush == null)
+            {
+                gridBrush = new TextureBrush(Images.Grid_37px);
+            }
+
+            //gridBrush.ResetTransform();
+            //gridBrush.TranslateTransform(100, 100);
+
+            g.CompositingMode = CompositingMode.SourceCopy;
+            g.FillRectangle(gridBrush, glView1.ClientRectangle); 
+            g.CompositingMode = CompositingMode.SourceOver;
+
             //g.PageUnit = GraphicsUnit.Millimeter;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            //g.SmoothingMode = SmoothingMode.AntiAlias;
+            string text = "test...";
 
             g.DrawString(g.DpiX.ToString(), this.Font, Brushes.Black, new PointF(2, 2));
 
             StringFormat sf = new StringFormat();
-            Rectangle rect = new Rectangle(50, 50, 400, 200);
+            Rectangle rect = new Rectangle(50, 50, 400, 150);
 
             g.DrawRectangle(Pens.Black, rect);
 
-            g.DrawString(label1.Text, this.Font, Brushes.Red, rect, sf);
+            g.DrawString(text, this.Font, Brushes.Red, rect, sf);
 
             sf.Alignment = StringAlignment.Center;
 
             g.FillRectangle(Brushes.Black, new Rectangle(180, 50, 140, 40));
-            g.DrawString(label1.Text, this.Font, Brushes.Yellow, rect, sf);
+            g.DrawString(text, this.Font, Brushes.Yellow, rect, sf);
 
             sf.Alignment = StringAlignment.Far;
             
-            g.DrawString(label1.Text, this.Font, Brushes.Green, rect, sf);
+            g.DrawString(text, this.Font, Brushes.Green, rect, sf);
 
             sf.Alignment = StringAlignment.Near;
             sf.LineAlignment = StringAlignment.Center;
 
-            g.DrawString(label1.Text, this.Font, Brushes.Blue, rect, sf);
+            g.DrawString(text, this.Font, Brushes.Blue, rect, sf);
 
             List<PointF> points = new List<PointF>();
 
@@ -97,7 +112,7 @@ namespace GLTestApp
                 for (int x = 0; x < 5; x++)
                 {
                     m.Reset();
-                    m.Translate(x * 50.0f + 200.0f, y * 50.0f + 200.0f);
+                    m.Translate(x * 50.0f + 200.0f, y * 50.0f + 250.0f);
                     g.Transform = m;
                     g.DrawLines(new Pen(Color.Blue, 0.0f), points.ToArray());
                 }
@@ -105,18 +120,18 @@ namespace GLTestApp
 
             g.ResetTransform();
 
-            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(50, 50, 24, 24));
-            g.DrawImage(Resources.navigate_down2, new Rectangle(50, 50, 24, 24));
+            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(50, 150, 24, 24));
+            g.DrawImage(Images.NavigateDown_48px, new Rectangle(50, 150, 24, 24));
 
-            if (bm == null)
+            if (transparentBitmap == null)
             {
                 ColorMatrix matrix = new ColorMatrix();
                 matrix.Matrix33 = 0.4f; //opacity 0 = completely transparent, 1 = completely opaque
-                bm = Helpers.BitmapFromImageAndColorMatrix(Resources.navigate_down2, matrix);
+                transparentBitmap = Helpers.BitmapFromImageAndColorMatrix(Images.NavigateDown_48px, matrix);
             }
 
-            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(100, 50, 24, 24));
-            g.DrawImage(bm, new Rectangle(100, 50, 24, 24));
+            g.DrawRectangle(new Pen(Color.Red, 0), new Rectangle(100, 150, 24, 24));
+            g.DrawImage(transparentBitmap, new Rectangle(100, 150, 24, 24));
         }
     }    
 }

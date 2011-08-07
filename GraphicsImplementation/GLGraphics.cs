@@ -1178,6 +1178,7 @@ namespace GraphicsImplementation
         {
             if (brush is TextureBrush)
             {
+                g.CurrentColor = Color.White;
                 g.Texture2DEnabled = true;
                 TextureBrush textureBrush = (TextureBrush)brush;
                 var texture = GetCachedTexture(textureBrush);

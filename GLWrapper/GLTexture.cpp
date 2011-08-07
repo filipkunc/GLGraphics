@@ -40,10 +40,10 @@ void UpdateTexture(GLubyte *data, int components, GLuint textureID, int width, i
 			throw "Unsupported texture format";
 	}
 
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);*/
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);*/
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 }
@@ -156,11 +156,11 @@ namespace GLWrapper
 	{
 		_glyphVertices.clear();
 
-		/*float t = (float)originalWidth / (float)width;
-		float s = (float)originalHeight / (float)height;*/
+		float t = (float)originalWidth / (float)width;
+		float s = (float)originalHeight / (float)height;
 
-		RectangleF srcRect = RectangleF(0.0f, 0.0f, 1.0f, 1.0f);
-		RectangleF dstRect = RectangleF(0.0f, 0.0f, width, height);
+		RectangleF srcRect = RectangleF(0.0f, 0.0f, t, s);
+		RectangleF dstRect = RectangleF(0.0f, 0.0f, originalWidth, originalHeight);
 
 		for (int y = rect.Top; y < rect.Bottom; y += originalHeight)
         {
