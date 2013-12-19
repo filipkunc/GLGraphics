@@ -5,10 +5,13 @@ using System.Text;
 using System.Drawing;
 using GLWrapper;
 using System.Drawing.Imaging;
+using System.Collections;
 
 namespace GraphicsImplementation
 {
-    public static class Helpers
+    public delegate void FillTextBackground2(Graphics g, Point textLocationPixel, Rectangle backgroundRect);
+
+    public static class GraphicsHelpers
     {
         public static RectangleF ScaleRect(this RectangleF rect, PointF scale)
         {
@@ -30,6 +33,11 @@ namespace GraphicsImplementation
             return new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
         }
 
+        public static Rectangle ToRectangle(this RectangleF rect)
+        {
+            return Rectangle.Round(rect);
+        }
+
         public static int NextPow2(int n)
         {
             int x = 2;
@@ -47,7 +55,7 @@ namespace GraphicsImplementation
 
         public static GLTexture GdiToTexture(Size originalSize, Action<Graphics> draw)
         {
-            Size power2Size = new Size(Helpers.NextPow2(originalSize.Width), Helpers.NextPow2(originalSize.Height));
+            Size power2Size = new Size(GraphicsHelpers.NextPow2(originalSize.Width), GraphicsHelpers.NextPow2(originalSize.Height));
             using (Bitmap bitmap = new Bitmap(power2Size.Width, power2Size.Height, PixelFormat.Format32bppArgb))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
@@ -64,6 +72,11 @@ namespace GraphicsImplementation
             ImageAttributes attributes = new ImageAttributes();
             attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
+            return BitmapFromImageAndAttributes(image, attributes);
+        }
+
+        public static Bitmap BitmapFromImageAndAttributes(Image image, ImageAttributes attributes)
+        {
             Bitmap bitmap = new Bitmap(image.Width, image.Height);
             using (Graphics g = Graphics.FromImage(bitmap))
             {
@@ -77,6 +90,68 @@ namespace GraphicsImplementation
             }
 
             return bitmap;
+        }
+
+        public static void HintTextBackgroundReset(this IGraphics g)
+        {
+            GLGraphics gl = g as GLGraphics;
+            if (gl != null)
+                gl.FillTextBackground = gl.FillTextBackground_Default;
+
+        }
+
+        public static void HintTextBackgroundColor(this IGraphics g, Color textBackgroundColor)
+        {
+            GLGraphics gl = g as GLGraphics;
+            if (gl != null)
+            {
+                gl.FillTextBackground = gl.FillTextBackground_Default;
+                gl.TextBackgroundColor = textBackgroundColor;
+            }
+        }        
+
+        public static void HintTextBackgroundAction(this IGraphics g, FillTextBackground2 fillBackground)
+        {
+            if (fillBackground == null)
+                return;
+
+            GLGraphics gl = g as GLGraphics;
+            if (gl != null)
+            {
+                gl.FillTextBackground = (textBackground, textLocation, textSize) =>
+                {
+                    Point textLocationPixel = new Point(
+                    (int)Math.Round(textLocation.X, MidpointRounding.AwayFromZero),
+                    (int)Math.Round(textLocation.Y, MidpointRounding.AwayFromZero));
+
+                    using (Graphics gdi = Graphics.FromImage(textBackground))
+                    {
+                        fillBackground(gdi, textLocationPixel, new Rectangle(0, 0, textBackground.Width, textBackground.Height));
+                    }
+                };
+            }
+        }
+
+        public static FillTextBackground SaveHintTextBackgroundAction(this IGraphics g)
+        {
+            GLGraphics gl = g as GLGraphics;
+            if (gl != null)
+                return gl.FillTextBackground;
+            return null;
+        }
+
+        public static void RestoreHintTextBackgroundAction(this IGraphics g, FillTextBackground fillBackground)
+        {
+            GLGraphics gl = g as GLGraphics;
+            if (gl != null)
+                gl.FillTextBackground = fillBackground;
+        }
+
+        public static byte[] ToBytes(this BitArray bits)
+        {
+            byte[] ret = new byte[bits.Length / 8];
+            bits.CopyTo(ret, 0);
+            return ret;
         }
     }
 }

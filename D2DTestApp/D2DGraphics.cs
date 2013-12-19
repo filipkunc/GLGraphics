@@ -4,160 +4,30 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Drawing.Text;
-using GLWrapper;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Collections;
+using System.Drawing.Imaging;
+using GraphicsImplementation;
 
-namespace GraphicsImplementation
+namespace D2DTestApp
 {
-    public delegate void FillTextBackground(Bitmap textBackground, PointF textLocation, SizeF textSize);
-
-    public class GLGraphics : IGraphics
+    public class D2DGraphics : IGraphics
     {
-        #region Texture Cache
-
-        static Dictionary<object, GLTexture> _textureCacheDictionary = new Dictionary<object, GLTexture>();
-        static ImageAttributesCache _imageAttributesCache = new ImageAttributesCache();
-        const int MaxCachedTextures = 100;
-
-        public static void ResetAllCaches()
-        {
-            _textureCacheDictionary = new Dictionary<object, GLTexture>();
-            _imageAttributesCache = new ImageAttributesCache();
-        }
-
-        private static void ClearTexturesIfNeeded()
-        {
-            if (_textureCacheDictionary.Count > MaxCachedTextures)
-            {
-                foreach (var texture in _textureCacheDictionary.Values)
-                    texture.Dispose();
-
-                _textureCacheDictionary.Clear();
-            }
-        }
-
-        private static GLTexture GetCachedTexture(object key, Size originalSize, Action<Graphics> draw)
-        {
-            GLTexture texture = null;
-            if (!_textureCacheDictionary.TryGetValue(key, out texture))
-            {
-                ClearTexturesIfNeeded();
-
-                texture = GraphicsHelpers.GdiToTexture(originalSize, draw);
-                _textureCacheDictionary.Add(key, texture);
-            }
-            return texture;
-        }
-
-
-        private static GLTexture GetCachedTexture(Image image)
-        {
-            return GetCachedTexture(image, image.Size, gdi =>
-                {
-                    using (Bitmap bitmap = new Bitmap(image))
-                    {
-                        bitmap.SetResolution(72.0f, 72.0f);
-                        gdi.DrawImage(bitmap, Point.Empty);
-                    }
-                });
-        }
-
-        private static GLTexture GetCachedTexture(TextureBrush textureBrush)
-        {
-            return GetCachedTexture(textureBrush, textureBrush.Image.Size, gdi => gdi.DrawImage(textureBrush.Image, Point.Empty));
-        }
-
-        #endregion
-
-        #region HatchStyle Cache
-
-        static Dictionary<int, byte[]> _hatchStyleCacheDictionary = new Dictionary<int, byte[]>();
-
-        public static void RegisterHatchStylePattern(HatchStyle hatchStyle, BitArray pattern_32x32)
-        {
-            _hatchStyleCacheDictionary[(int)hatchStyle] = pattern_32x32.ToBytes();
-        }
-
-        byte[] GetCachedHatchStylePattern(HatchStyle hatchStyle)
-        {
-            byte[] pattern;
-            if (_hatchStyleCacheDictionary.TryGetValue((int)hatchStyle, out pattern))
-            {
-                return pattern;
-            }
-            return null;
-        }
-
-        #endregion
-
-        #region HatchStyle Patterns
-
-        static BitArray CreatePattern_LightUpwardDiagonal()
-        {
-            BitArray pattern = new BitArray(32 * 32);
-
-            for (int y = 0; y < 32; y++)
-            {
-                for (int x = 0; x < 32; x++)
-                {
-                    if ((x + y % 4) % 4 == 0)
-                    {
-                        pattern[y * 32 + x] = true;
-                    }
-                }
-            }
-
-            return pattern;
-        }
-
-        static BitArray CreatePattern_LightDownwardDiagonal()
-        {
-            BitArray pattern = new BitArray(32 * 32);
-
-            for (int y = 0; y < 32; y++)
-            {
-                for (int x = 0; x < 32; x++)
-                {
-                    if ((x + y % 4) % 4 == 0)
-                    {
-                        pattern[(31 - y) * 32 + x] = true;
-                    }
-                }
-            }
-
-            return pattern;
-        }
-
-        static GLGraphics()
-        {
-            RegisterHatchStylePattern(HatchStyle.LightUpwardDiagonal, CreatePattern_LightUpwardDiagonal());
-            RegisterHatchStylePattern(HatchStyle.LightDownwardDiagonal, CreatePattern_LightDownwardDiagonal());
-        }
-
-        #endregion
-
-        GLCanvas _canvas;
+        SharpDX.Direct2D1.RenderTarget _renderTarget;
         Graphics _graphics;
         GraphicsUnit _pageUnit = GraphicsUnit.Pixel;
         Matrix _gdiTransform = new Matrix();
-        GLMatrix2D _glTransform = new GLMatrix2D();
 
         public FillTextBackground FillTextBackground;
         public Color TextBackgroundColor;
 
-        public GLGraphics(CanvasEventArgs e)
+        public D2DGraphics(D2DView.RenderTargetEventArgs e)
         {
-            _canvas = e.Canvas;
+            _renderTarget = e.RenderTarget;
             _graphics = e.Graphics;
-            FillTextBackground = FillTextBackground_Default;
-            TextBackgroundColor = _canvas.BackColor;
-        }        
+        }
 
-        public GLCanvas Canvas { get { return _canvas; } }
+        public SharpDX.Direct2D1.RenderTarget Canvas { get { return _renderTarget; } }
 
         public Region Clip
         {
@@ -178,16 +48,8 @@ namespace GraphicsImplementation
 
         public CompositingMode CompositingMode
         {
-            get
-            {
-                if (_canvas.BlendEnabled)
-                    return CompositingMode.SourceOver;
-                return CompositingMode.SourceCopy;
-            }
-            set
-            {
-                _canvas.BlendEnabled = value == CompositingMode.SourceOver;
-            }
+            get { return CompositingMode.SourceOver; }
+            set { }
         }
 
         public CompositingQuality CompositingQuality
@@ -198,12 +60,12 @@ namespace GraphicsImplementation
 
         public float DpiX
         {
-            get { return _canvas.Dpi.X; }
+            get { return _renderTarget.DotsPerInch.Width; }
         }
 
         public float DpiY
         {
-            get { return _canvas.Dpi.Y; }
+            get { return _renderTarget.DotsPerInch.Height; }
         }
 
         public InterpolationMode InterpolationMode
@@ -237,13 +99,14 @@ namespace GraphicsImplementation
                     return;
 
                 _pageUnit = value;
+
                 switch (_pageUnit)
                 {
                     case GraphicsUnit.Millimeter:
-                        _canvas.GlobalScale = new PointF(_canvas.Dpi.X / 25.4f, _canvas.Dpi.Y / 25.4f);
+                        _renderTarget.Transform = SharpDX.Matrix3x2.Scaling(new SharpDX.Vector2(DpiX / 25.4f, DpiY / 25.4f));
                         break;
                     case GraphicsUnit.Pixel:
-                        _canvas.GlobalScale = new PointF(1.0f, 1.0f);
+                        _renderTarget.Transform = SharpDX.Matrix3x2.Identity;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -279,10 +142,10 @@ namespace GraphicsImplementation
                     case SmoothingMode.AntiAlias:
                     case SmoothingMode.HighQuality:
                     case SmoothingMode.HighSpeed:
-                        _canvas.AntialiasingEnabled = true;
+                        _renderTarget.AntialiasMode = SharpDX.Direct2D1.AntialiasMode.PerPrimitive;
                         break;
                     default:
-                        _canvas.AntialiasingEnabled = false;
+                        _renderTarget.AntialiasMode = SharpDX.Direct2D1.AntialiasMode.Aliased;
                         break;
                 }
             }
@@ -317,8 +180,7 @@ namespace GraphicsImplementation
             set
             {
                 _gdiTransform = value;
-                _glTransform.SetFromGdiMatrix(value);
-                _canvas.Transform(_glTransform);
+                _renderTarget.Transform = new SharpDX.Matrix3x2(_gdiTransform.Elements);
             }
         }
 
@@ -349,8 +211,7 @@ namespace GraphicsImplementation
 
         public void Clear(Color color)
         {
-            _canvas.Clear(color);
-            TextBackgroundColor = color;
+            _renderTarget.Clear(color.ToColor4());
         }
 
         public void CopyFromScreen(Point upperLeftSource, Point upperLeftDestination, Size blockRegionSize)
@@ -385,8 +246,9 @@ namespace GraphicsImplementation
 
         public void DrawArc(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawArc(rect, startAngle, sweepAngle, false);
+            //SetCanvasFromPen(pen);
+            //_canvas.DrawArc(rect, startAngle, sweepAngle, false);
+            throw new NotImplementedException("TODO: DrawArc"); //!-!
         }
 
         public void DrawArc(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
@@ -486,8 +348,9 @@ namespace GraphicsImplementation
 
         public void DrawEllipse(Pen pen, RectangleF rect)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawEllipse(rect);
+            //SetCanvasFromPen(pen);
+            //_canvas.DrawEllipse(rect);
+            throw new NotImplementedException("TODO: DrawEllipse"); //!-!
         }
 
         public void DrawEllipse(Pen pen, float x, float y, float width, float height)
@@ -515,24 +378,9 @@ namespace GraphicsImplementation
             throw new NotImplementedException();
         }
 
-        private void DrawTexture(Image image, Action<GLTexture> drawAction)
-        {
-            _canvas.CurrentColor = Color.White;
-            _canvas.Texture2DEnabled = true;
-            var texture = GetCachedTexture(image);
-            drawAction(texture);
-            _canvas.Texture2DEnabled = false;
-        }
-
         public void DrawImage(Image image, Point point)
         {
-            DrawTexture(image, texture =>
-                {
-                    RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
-                    RectangleF dstRect = srcRect;
-                    dstRect.Offset(point);
-                    texture.Draw(dstRect, srcRect);
-                });
+
         }
 
         public void DrawImage(Image image, Point[] destPoints)
@@ -542,13 +390,7 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, PointF point)
         {
-            DrawTexture(image, texture =>
-            {
-                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
-                RectangleF dstRect = srcRect;
-                dstRect.Offset(point);
-                texture.Draw(dstRect, srcRect);
-            });
+
         }
 
         public void DrawImage(Image image, PointF[] destPoints)
@@ -558,22 +400,12 @@ namespace GraphicsImplementation
 
         public void DrawImage(Image image, Rectangle rect)
         {
-            DrawTexture(image, texture =>
-            {
-                RectangleF dstRect = rect.ToRectangleF();
-                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
-                texture.Draw(dstRect, srcRect);
-            });
+
         }
 
         public void DrawImage(Image image, RectangleF rect)
         {
-            DrawTexture(image, texture =>
-            {
-                RectangleF dstRect = rect;
-                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
-                texture.Draw(dstRect, srcRect);
-            });
+
         }
 
         public void DrawImage(Image image, float x, float y)
@@ -676,14 +508,7 @@ namespace GraphicsImplementation
             if (srcUnit != GraphicsUnit.Pixel)
                 throw new NotImplementedException();
 
-            Bitmap bitmap = _imageAttributesCache.GetOrCreateBitmapFromImageAndAttributes(image, imageAttr);
-
-            DrawTexture(bitmap, texture =>
-            {
-                RectangleF dstRect = destRect.ToRectangleF();
-                RectangleF srcRect = new RectangleF(0, 0, texture.Width, texture.Height);
-                texture.Draw(dstRect, srcRect);
-            });
+            throw new NotImplementedException("TODO: DrawImage"); //!-!
         }
 
         public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, Graphics.DrawImageAbort callback)
@@ -731,42 +556,46 @@ namespace GraphicsImplementation
             throw new NotImplementedException();
         }
 
-        private void SetCanvasFromPen(Pen pen)
-        {
-            _canvas.CurrentColor = pen.Color;
-            _canvas.LineWidth = pen.Width;
-            switch (pen.DashStyle)
-            {
-                case DashStyle.Dash:
-                    _canvas.SetLineStipplePattern(1, 0xEEEE);
-                    break;
-                case DashStyle.DashDot:
-                    _canvas.SetLineStipplePattern(1, 0xEBAE);
-                    break;
-                case DashStyle.DashDotDot:
-                    _canvas.SetLineStipplePattern(1, 0x5757);
-                    break;
-                case DashStyle.Dot:
-                    _canvas.SetLineStipplePattern(1, 0xAAAA);
-                    break;
-                case DashStyle.Custom:
-                case DashStyle.Solid:
-                default:
-                    _canvas.ResetLineStipplePattern();
-                    break;
-            }            
-        }
+        //private void SetCanvasFromPen(Pen pen)
+        //{
+        //    _canvas.CurrentColor = pen.Color;
+        //    _canvas.LineWidth = pen.Width;
+        //    switch (pen.DashStyle)
+        //    {
+        //        case DashStyle.Dash:
+        //            _canvas.SetLineStipplePattern(1, 0xEEEE);
+        //            break;
+        //        case DashStyle.DashDot:
+        //            _canvas.SetLineStipplePattern(1, 0xEBAE);
+        //            break;
+        //        case DashStyle.DashDotDot:
+        //            _canvas.SetLineStipplePattern(1, 0x5757);
+        //            break;
+        //        case DashStyle.Dot:
+        //            _canvas.SetLineStipplePattern(1, 0xAAAA);
+        //            break;
+        //        case DashStyle.Custom:
+        //        case DashStyle.Solid:
+        //        default:
+        //            _canvas.ResetLineStipplePattern();
+        //            break;
+        //    }
+        //}
 
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
-            SetCanvasFromPen(pen);
-             _canvas.DrawLine(pt1, pt2);            
+            DrawLine(pen, new PointF(pt1.X, pt1.Y), new PointF(pt2.X, pt2.Y));
         }
 
         public void DrawLine(Pen pen, PointF pt1, PointF pt2)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawLine(pt1, pt2);
+            float strokeWidth = pen.Width;
+            if (strokeWidth == 0.0f)
+                strokeWidth = 1.0f;
+
+            _renderTarget.DrawLine(new SharpDX.Vector2(pt1.X, pt1.Y), new SharpDX.Vector2(pt2.X, pt2.Y),
+                new SharpDX.Direct2D1.SolidColorBrush(_renderTarget, pen.Color.ToColor4()), 
+                strokeWidth, pen.ToStrokeStyle(_renderTarget.Factory));
         }
 
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
@@ -781,14 +610,50 @@ namespace GraphicsImplementation
 
         public void DrawLines(Pen pen, Point[] points)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawLines(points, true);
+            using (var geometry = new SharpDX.Direct2D1.PathGeometry(_renderTarget.Factory))
+            {
+                var sink = geometry.Open();
+
+                sink.BeginFigure(new SharpDX.Vector2(points[0].X, points[0].Y), SharpDX.Direct2D1.FigureBegin.Hollow);
+
+                for (int i = 1; i < points.Length; i++)
+                    sink.AddLine(new SharpDX.Vector2(points[i].X, points[i].Y));
+
+                sink.EndFigure(SharpDX.Direct2D1.FigureEnd.Open);
+
+                sink.Close();
+
+                float strokeWidth = pen.Width;
+                if (strokeWidth == 0.0f)
+                    strokeWidth = 1.0f;
+
+                _renderTarget.DrawGeometry(geometry, new SharpDX.Direct2D1.SolidColorBrush(_renderTarget, pen.Color.ToColor4()),
+                    strokeWidth, pen.ToStrokeStyle(_renderTarget.Factory));
+            }
         }
 
         public void DrawLines(Pen pen, PointF[] points)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawLines(points, true);
+            using (var geometry = new SharpDX.Direct2D1.PathGeometry(_renderTarget.Factory))
+            {
+                var sink = geometry.Open();
+
+                sink.BeginFigure(new SharpDX.Vector2(points[0].X, points[0].Y), SharpDX.Direct2D1.FigureBegin.Hollow);
+
+                for (int i = 1; i < points.Length; i++)
+                    sink.AddLine(new SharpDX.Vector2(points[i].X, points[i].Y));
+
+                sink.EndFigure(SharpDX.Direct2D1.FigureEnd.Open);
+
+                sink.Close();
+
+                float strokeWidth = pen.Width;
+                if (strokeWidth == 0.0f)
+                    strokeWidth = 1.0f;
+
+                _renderTarget.DrawGeometry(geometry, new SharpDX.Direct2D1.SolidColorBrush(_renderTarget, pen.Color.ToColor4()),
+                    strokeWidth, pen.ToStrokeStyle(_renderTarget.Factory));
+            }
         }
 
         public void DrawPath(Pen pen, GraphicsPath path)
@@ -803,8 +668,9 @@ namespace GraphicsImplementation
 
         public void DrawPie(Pen pen, RectangleF rect, float startAngle, float sweepAngle)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawArc(rect, startAngle, sweepAngle, true);
+            //SetCanvasFromPen(pen);
+            //_canvas.DrawArc(rect, startAngle, sweepAngle, true);
+            throw new NotImplementedException("TODO: DrawPie"); //!-!
         }
 
         public void DrawPie(Pen pen, float x, float y, float width, float height, float startAngle, float sweepAngle)
@@ -829,14 +695,14 @@ namespace GraphicsImplementation
 
         public void DrawRectangle(Pen pen, Rectangle rect)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawRectangle(rect);
+            DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
         }
 
         public void DrawRectangle(Pen pen, float x, float y, float width, float height)
         {
-            SetCanvasFromPen(pen);
-            _canvas.DrawRectangle(new RectangleF(x, y, width, height));
+            //SetCanvasFromPen(pen);
+            //_canvas.DrawRectangle(new RectangleF(x, y, width, height));
+            throw new NotImplementedException("TODO: DrawRectangle"); //!-!
         }
 
         public void DrawRectangle(Pen pen, int x, int y, int width, int height)
@@ -873,154 +739,30 @@ namespace GraphicsImplementation
 
         public void DrawString(string s, Font font, Brush brush, PointF point, StringFormat format)
         {
-            SizeF textSize = _graphics.MeasureString(s, font, point, format);
-            DrawStringByPixels(s, font, brush, textSize, new RectangleF(point, SizeF.Empty), format);
+            //SizeF textSize = _graphics.MeasureString(s, font, point, format);
+            //DrawStringByPixels(s, font, brush, textSize, new RectangleF(point, SizeF.Empty), format);
+
+            throw new NotImplementedException("TODO: DrawString"); //!-!
         }
 
         public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
         {
-            SizeF layoutSize = layoutRectangle.Size;
-            if (_pageUnit == GraphicsUnit.Millimeter)
-            {
-                layoutSize.Width *= _canvas.GlobalScale.X;
-                layoutSize.Height *= _canvas.GlobalScale.Y;
-            }
+            //SizeF layoutSize = layoutRectangle.Size;
+            //if (_pageUnit == GraphicsUnit.Millimeter)
+            //{
+            //    layoutSize.Width *= _canvas.GlobalScale.X;
+            //    layoutSize.Height *= _canvas.GlobalScale.Y;
+            //}
 
-            SizeF textSize = _graphics.MeasureString(s, font, layoutSize, format);
-            DrawStringByPixels(s, font, brush, textSize, layoutRectangle, format);
+            //SizeF textSize = _graphics.MeasureString(s, font, layoutSize, format);
+            //DrawStringByPixels(s, font, brush, textSize, layoutRectangle, format);
+
+            throw new NotImplementedException("TODO: DrawString"); //!-!
         }
 
         public void DrawString(string s, Font font, Brush brush, float x, float y, StringFormat format)
         {
             DrawString(s, font, brush, new PointF(x, y), format);
-        }
-
-        private void UpdateTextLocationByPoint(ref PointF textLocation, SizeF textSize, StringFormat format)
-        {
-            switch (format.Alignment)
-            {
-                case StringAlignment.Center:
-                    textLocation.X -= (float)Math.Round(textSize.Width / 2.0f, MidpointRounding.AwayFromZero);
-                    break;
-                case StringAlignment.Far:
-                    textLocation.X -= textSize.Width;
-                    break;
-                case StringAlignment.Near:
-                default:
-                    break;
-            }
-
-            switch (format.LineAlignment)
-            {
-                case StringAlignment.Center:
-                    textLocation.Y -= (float)Math.Round(textSize.Height / 2.0f, MidpointRounding.AwayFromZero);
-                    break;
-                case StringAlignment.Far:
-                    textLocation.Y -= textSize.Height;
-                    break;
-                case StringAlignment.Near:
-                default:
-                    break;
-            }
-        }
-
-        private void UpdateTextLocationByRectangle(ref PointF textLocation, RectangleF rect, SizeF textSize, StringFormat format)
-        {
-            switch (format.Alignment)
-            {
-                case StringAlignment.Center:
-                    textLocation.X += (float)Math.Round(rect.Width / 2.0f, MidpointRounding.AwayFromZero);
-                    textLocation.X -= (float)Math.Round(textSize.Width / 2.0f, MidpointRounding.AwayFromZero);
-                    break;
-                case StringAlignment.Far:
-                    textLocation.X = rect.Right;
-                    textLocation.X -= textSize.Width;
-                    break;
-                case StringAlignment.Near:
-                default:
-                    break;
-            }
-
-            switch (format.LineAlignment)
-            {
-                case StringAlignment.Center:
-                    textLocation.Y += (float)Math.Round(rect.Height / 2.0f, MidpointRounding.AwayFromZero);
-                    textLocation.Y -= (float)Math.Round(textSize.Height / 2.0f, MidpointRounding.AwayFromZero);
-                    break;
-                case StringAlignment.Far:
-                    textLocation.Y = rect.Bottom;
-                    textLocation.Y -= textSize.Height;
-                    break;
-                case StringAlignment.Near:
-                default:
-                    break;
-            }
-        }
-
-        public void FillTextBackground_glReadPixels(Bitmap textBackground, PointF textLocation, SizeF textSize)
-        {
-            textLocation.Y = _canvas.CanvasSize.Height - textLocation.Y - textSize.Height;
-            Point textLocationPixel = new Point(
-                        (int)Math.Round(textLocation.X, MidpointRounding.AwayFromZero),
-                        (int)Math.Round(textLocation.Y, MidpointRounding.AwayFromZero));
-
-            _canvas.FillBitmap(textBackground, textLocationPixel);
-            textBackground.RotateFlip(RotateFlipType.RotateNoneFlipY);
-        }
-
-        public void FillTextBackground_Default(Bitmap textBackground, PointF textLocation, SizeF textSize)
-        {
-            Point textLocationPixel = new Point(
-                        (int)Math.Round(textLocation.X, MidpointRounding.AwayFromZero),
-                        (int)Math.Round(textLocation.Y, MidpointRounding.AwayFromZero));
-
-
-            using (Graphics g = Graphics.FromImage(textBackground))
-            {
-                g.Clear(TextBackgroundColor);
-            }
-        }
-
-        private void DrawStringByPixels(string s, Font font, Brush brush, SizeF textSize, RectangleF layoutRectangle, StringFormat format)
-        {
-            if (_pageUnit == GraphicsUnit.Millimeter)
-                layoutRectangle = layoutRectangle.ScaleRect(_canvas.GlobalScale);
-
-            PointF textLocation = layoutRectangle.Location;
-
-            if (format != null)
-            {
-                if (layoutRectangle.IsEmpty)
-                    UpdateTextLocationByPoint(ref textLocation, textSize, format);
-                else
-                    UpdateTextLocationByRectangle(ref textLocation, layoutRectangle, textSize, format);
-            }
-
-            RectangleF textRectangle = new RectangleF(textLocation, textSize);
-
-            PointF fillLocation = textLocation;
-
-            using (Bitmap bitmap = new Bitmap((int)textSize.Width + 1, (int)textSize.Height + 1))
-            {
-                if (_textRenderingHint == TextRenderingHint.ClearTypeGridFit)
-                {
-                    FillTextBackground(bitmap, textLocation, textSize);
-                }
-
-                using (Graphics gdi = Graphics.FromImage(bitmap))
-                {
-                    gdi.TextRenderingHint = _textRenderingHint;
-                    gdi.DrawString(s, font, brush, new RectangleF(PointF.Empty, textSize), format);
-                }
-
-                bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
-                _canvas.Texture2DEnabled = false;
-                _canvas.CurrentColor = Color.White;
-
-                textLocation.Y = _canvas.CanvasSize.Height - textLocation.Y - textSize.Height;
-                _canvas.DrawPixels(bitmap, textLocation);
-            }
         }
 
         public void EndContainer(GraphicsContainer container)
@@ -1308,79 +1050,20 @@ namespace GraphicsImplementation
             throw new NotImplementedException();
         }
 
-        private Color[] ColorsFromBrush(Brush brush)
-        {
-            if (brush is SolidBrush)
-            {
-                SolidBrush solid = (SolidBrush)brush;
-                _canvas.CurrentColor = solid.Color;
-                return null;
-            }
-
-            if (brush is LinearGradientBrush)
-            {
-                LinearGradientBrush gradient = (LinearGradientBrush)brush;
-                Color[] colors = new Color[4];
-                if (GraphicsHelpers.FloatEquals(gradient.Transform.Elements[2], -0.5f))
-                {
-                    colors[0] = gradient.LinearColors[0];
-                    colors[1] = gradient.LinearColors[0];
-                    colors[2] = gradient.LinearColors[1];
-                    colors[3] = gradient.LinearColors[1];
-                }
-                else
-                {
-                    colors[0] = gradient.LinearColors[0];
-                    colors[1] = gradient.LinearColors[1];
-                    colors[2] = gradient.LinearColors[1];
-                    colors[3] = gradient.LinearColors[0];
-                }
-                return colors;
-            }
-
-            return null;
-        }       
-        
-        private void SetPatternFromBrush(Brush brush)
-        {
-            if (brush is HatchBrush)
-            {
-                HatchBrush hatch = (HatchBrush)brush;
-                var pattern = GetCachedHatchStylePattern(hatch.HatchStyle);
-                if (pattern != null)
-                    _canvas.SetPolygonStipplePattern(pattern);
-                _canvas.CurrentColor = hatch.ForegroundColor;
-            }
-        }
-
         public void FillRectangle(Brush brush, Rectangle rect)
         {
-            SetPatternFromBrush(brush);
-
-            if (brush is TextureBrush)
-            {
-                _canvas.CurrentColor = Color.White;
-                _canvas.Texture2DEnabled = true;
-                TextureBrush textureBrush = (TextureBrush)brush;
-                var texture = GetCachedTexture(textureBrush);
-                texture.DrawTiled(rect);
-                _canvas.Texture2DEnabled = false;
-            }
-            else
-            {
-                _canvas.FillRectangle(rect, ColorsFromBrush(brush));
-            }
-
-            _canvas.ResetPolygonStipplePattern();
+            FillRectangle(brush, new RectangleF(rect.X, rect.Y, rect.Width, rect.Height));
         }
 
         public void FillRectangle(Brush brush, RectangleF rect)
         {
-            SetPatternFromBrush(brush);
+            //SetPatternFromBrush(brush);
 
-            _canvas.FillRectangle(rect, ColorsFromBrush(brush));
+            //_canvas.FillRectangle(rect, ColorsFromBrush(brush));
 
-            _canvas.ResetPolygonStipplePattern();
+            //_canvas.ResetPolygonStipplePattern();
+
+            throw new NotImplementedException("TODO: FillRectangle");
         }
 
         public void FillRectangle(Brush brush, float x, float y, float width, float height)
@@ -1504,8 +1187,8 @@ namespace GraphicsImplementation
             SizeF size = TextRenderer.MeasureText(text, font).ToSizeF();
             if (_pageUnit == GraphicsUnit.Millimeter)
             {
-                size.Width /= _canvas.GlobalScale.X;
-                size.Height /= _canvas.GlobalScale.Y;
+                size.Width /= _renderTarget.Transform.ScaleVector.X;
+                size.Height /= _renderTarget.Transform.ScaleVector.Y;
             }
             return size;
         }
@@ -1569,7 +1252,7 @@ namespace GraphicsImplementation
 
         public void ResetClip()
         {
-            _canvas.ResetClip();
+            throw new NotImplementedException("TODO: ResetClip"); //!-!
         }
 
         public void ResetTransform()
@@ -1624,23 +1307,27 @@ namespace GraphicsImplementation
 
         public void SetClip(Rectangle rect)
         {
-            PointF currentScale = _canvas.GlobalScale;
-            rect.X = (int)Math.Round(rect.X * currentScale.X);
-            rect.Y = (int)Math.Round(rect.Y * currentScale.Y);
-            rect.Width = (int)Math.Round(rect.Width * currentScale.X);
-            rect.Height = (int)Math.Round(rect.Height * currentScale.Y);
-            _canvas.SetClip(rect);
+            //PointF currentScale = _canvas.GlobalScale;
+            //rect.X = (int)Math.Round(rect.X * currentScale.X);
+            //rect.Y = (int)Math.Round(rect.Y * currentScale.Y);
+            //rect.Width = (int)Math.Round(rect.Width * currentScale.X);
+            //rect.Height = (int)Math.Round(rect.Height * currentScale.Y);
+            //_canvas.SetClip(rect);
+
+            throw new NotImplementedException("TODO: SetClip"); //!-!
         }
 
         public void SetClip(RectangleF rect)
         {
-            Rectangle clipRect = new Rectangle();
-            PointF currentScale = _canvas.GlobalScale;
-            clipRect.X = (int)Math.Round(rect.X * currentScale.X);
-            clipRect.Y = (int)Math.Round(rect.Y * currentScale.Y);
-            clipRect.Width = (int)Math.Round(rect.Width * currentScale.X);
-            clipRect.Height = (int)Math.Round(rect.Height * currentScale.Y);
-            _canvas.SetClip(clipRect);
+            //Rectangle clipRect = new Rectangle();
+            //PointF currentScale = _canvas.GlobalScale;
+            //clipRect.X = (int)Math.Round(rect.X * currentScale.X);
+            //clipRect.Y = (int)Math.Round(rect.Y * currentScale.Y);
+            //clipRect.Width = (int)Math.Round(rect.Width * currentScale.X);
+            //clipRect.Height = (int)Math.Round(rect.Height * currentScale.Y);
+            //_canvas.SetClip(clipRect);
+
+            throw new NotImplementedException("TODO: SetClip"); //!-!
         }
 
         public void SetClip(Graphics g, CombineMode combineMode)

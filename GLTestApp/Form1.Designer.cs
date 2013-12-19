@@ -64,6 +64,9 @@
             this.glView1.Size = new System.Drawing.Size(965, 518);
             this.glView1.TabIndex = 1;
             this.glView1.Paint += new System.Windows.Forms.PaintEventHandler(this.glView1_Paint);
+            this.glView1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glView1_MouseMove);
+            this.glView1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glView1_MouseDown);
+            this.glView1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glView1_MouseUp);
             this.glView1.PaintCanvas += new System.EventHandler<GLWrapper.CanvasEventArgs>(this.glView1_PaintCanvas);
             // 
             // label1

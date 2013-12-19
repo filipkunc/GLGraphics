@@ -2,6 +2,7 @@
 #include "GLTexture.h"
 #include "GLMatrix2D.h"
 #include "GLCanvas.h"
+#include "Math\Camera.h"
 
 namespace GLWrapper
 {
@@ -20,7 +21,7 @@ namespace GLWrapper
 		_pointSize = 1.0f;
 
 		_globalScale = PointF(1.0f, 1.0f);
-
+		
 		_currentColor = Color::Transparent;
 		glColor4ub(0, 0, 0, 0);
 
@@ -51,7 +52,7 @@ namespace GLWrapper
 		}
 	}
 
-	bool GLCanvas::BlendEnabled::get()
+    bool GLCanvas::BlendEnabled::get()
 	{
 		return _blendEnabled;
 	}
@@ -181,25 +182,25 @@ namespace GLWrapper
 		glEnd();
 	}
 
-	void GLCanvas::DrawLines(array<Point> ^points)
+	void GLCanvas::DrawLines(array<Point> ^points, bool strip)
 	{
 		pin_ptr<Point> vertexPtr = &points[0];
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_INT, sizeof(Point), vertexPtr);
-		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
+		glDrawArrays(strip ? GL_LINE_STRIP : GL_LINES, 0, points->Length);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}	
 
-	void GLCanvas::DrawLines(array<PointF> ^points)
+	void GLCanvas::DrawLines(array<PointF> ^points, bool strip)
 	{
 		pin_ptr<PointF> vertexPtr = &points[0];
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, sizeof(PointF), vertexPtr);
-		glDrawArrays(GL_LINE_STRIP, 0, points->Length);
+		glDrawArrays(strip ? GL_LINE_STRIP : GL_LINES, 0, points->Length);
 		glDisableClientState(GL_VERTEX_ARRAY);
-	}
+	}	
 
 	void GLCanvas::DrawPoint(PointF a)
 	{
@@ -345,47 +346,218 @@ namespace GLWrapper
 
 	void GLCanvas::SetClip(System::Drawing::Rectangle rect)
 	{
-		glPopMatrix();
-
-		float offsetY = rect.Y;
-
-		rect.Y = _size.Height - rect.Bottom;
-		
-		glViewport(rect.X, rect.Y, rect.Width, rect.Height);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(rect.Left, rect.Right, rect.Top - offsetY, rect.Bottom - offsetY, -1.0f, 1.0f);
-		
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		glTranslatef(0.0f, rect.Bottom, 0);
-		glScalef(1, -1, 1);
-
-		glTranslatef(0.5f, 0.5f, 0.0f);
-		glPushMatrix();
-		glScalef(_globalScale.X, _globalScale.Y, 1.0f);		
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(rect.X, _size.Height - rect.Bottom, rect.Width, rect.Height);
 	}
 
 	void GLCanvas::ResetClip()
 	{
+		glDisable(GL_SCISSOR_TEST);		
+	}
+
+	void GLCanvas::FillBitmap(Bitmap ^bitmap, Point offset)
+	{
+		glPushMatrix();
+		glLoadIdentity();
+
+		System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, bitmap->Width, bitmap->Height);
+		BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::WriteOnly, PixelFormat::Format32bppArgb);
+
+		glRasterPos2f(0.0f, 0.0f);
+		glReadPixels(offset.X, offset.Y, rect.Width, rect.Height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data->Scan0.ToPointer());
+
+		bitmap->UnlockBits(data);
+
+		glPopMatrix();
+	}
+
+	void GLCanvas::DrawPixels(Bitmap ^bitmap, PointF offset)
+	{
+		glPushMatrix();
+		glLoadIdentity();
+
+		System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, bitmap->Width, bitmap->Height);
+		BitmapData ^data = bitmap->LockBits(rect, ImageLockMode::ReadOnly, PixelFormat::Format32bppArgb);
+
+		glRasterPos2f(offset.X, offset.Y);
+		glDrawPixels(bitmap->Width, bitmap->Height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data->Scan0.ToPointer());
+
+		bitmap->UnlockBits(data);		
+
+		glPopMatrix();		
+	}
+
+	void GLCanvas::SetLineStipplePattern(int factor, unsigned short pattern)
+	{
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(factor, pattern);
+	}
+
+	void GLCanvas::ResetLineStipplePattern()
+	{
+		glDisable(GL_LINE_STIPPLE);
+	}
+
+	void GLCanvas::SetPolygonStipplePattern(array<Byte> ^pattern)
+	{
+		pin_ptr<Byte> mask = &pattern[0];
+
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(mask);
+	}
+
+	void GLCanvas::ResetPolygonStipplePattern()
+	{
+		glDisable(GL_POLYGON_STIPPLE);
+	}
+
+	void GLCanvas::BeginPerspective(System::Drawing::Rectangle rect, double fovy, double zNear, double zFar)
+	{
 		glPopMatrix();
 
+		glViewport(rect.X, _size.Height - rect.Bottom, rect.Width, rect.Height);		
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		double aspect = (double)rect.Width / (double)rect.Height;
+		gluPerspective(fovy, aspect, zNear, zFar);		
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+	}
+
+    void GLCanvas::BeginOrtho(System::Drawing::Rectangle rect, 
+        double left, double right, double top, double bottom, double zNear, double zFar)
+	{
+		glPopMatrix();
+
+		glViewport(rect.X, _size.Height - rect.Bottom, rect.Width, rect.Height);		
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+        glOrtho(left, right, top, bottom, zNear, zFar);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+	} 
+
+	void GLCanvas::SetCamera(GLCamera ^camera)
+	{
+		glLoadMatrixf(camera->GetCamera()->GetViewMatrix());
+	}
+
+	void GLCanvas::DrawLines(array<GLPoint> ^vertices, bool strip)
+	{
+		pin_ptr<float> vertexPtr = &vertices[0].X;
+		pin_ptr<Byte> colorPtr = &vertices[0].R;
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(GLPoint), vertexPtr);
+		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(GLPoint), colorPtr);
+		glDrawArrays(strip ? GL_LINE_STRIP : GL_LINES, 0, vertices->Length);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	void GLCanvas::DrawTriangles(array<GLPoint> ^vertices, bool strip)
+	{
+		pin_ptr<float> vertexPtr = &vertices[0].X;
+		pin_ptr<Byte> colorPtr = &vertices[0].R;
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(GLPoint), vertexPtr);
+		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(GLPoint), colorPtr);
+		glDrawArrays(strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, vertices->Length);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+	
+	void GLCanvas::DrawQuads(array<GLPoint> ^vertices, bool strip)
+	{
+		pin_ptr<float> vertexPtr = &vertices[0].X;
+		pin_ptr<Byte> colorPtr = &vertices[0].R;
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(GLPoint), vertexPtr);
+		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(GLPoint), colorPtr);
+		glDrawArrays(strip ? GL_QUAD_STRIP : GL_QUADS, 0, vertices->Length);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	void GLCanvas::EndPerspectiveOrOrtho()
+	{
 		glViewport(0, 0, _size.Width, _size.Height);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0.0f, _size.Width, 0.0f, _size.Height, -1.0f, 1.0f);
-		
+		glOrtho(0, _size.Width, 0, _size.Height, -1.0f, 1.0f);
+
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glTranslatef(0.0f, _size.Height, 0);
+		glTranslatef(0, (float)_size.Height, 0);
 		glScalef(1, -1, 1);
 
 		glTranslatef(0.5f, 0.5f, 0.0f);
-		glPushMatrix();
-		glScalef(_globalScale.X, _globalScale.Y, 1.0f);		
+
+		glPushMatrix();		
+
+		glDisable(GL_DEPTH_TEST);
 	}
+
+    List<PointF> ^GLCanvas::ProjectPoints(System::Collections::Generic::IEnumerable<GLVector3> ^points)
+    {
+        GLint viewport[4];
+        GLdouble modelView[16]; 
+        GLdouble projection[16]; 
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
+        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        List<PointF> ^projectedPoints = gcnew List<PointF>();
+
+        for each(GLVector3 point in points)
+        {
+            double x, y, z;
+            gluProject(point.X, point.Y, point.Z, modelView, projection, viewport, &x, &y, &z);
+            projectedPoints->Add(PointF(x, _size.Height - y));
+        }
+
+        return projectedPoints;
+    }
+
+    List<GLVector3> ^GLCanvas::UnProjectPoints(System::Collections::Generic::IEnumerable<PointF> ^points)
+    {
+        GLint viewport[4];
+        GLdouble modelView[16]; 
+        GLdouble projection[16]; 
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
+        glGetDoublev(GL_PROJECTION_MATRIX, projection);
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        List<GLVector3> ^unProjectedPoints = gcnew List<GLVector3>();
+
+        for each(PointF point in points)
+        {
+            double x, y, z;
+            gluUnProject(point.X, _size.Height - point.Y, 0, modelView, projection, viewport, &x, &y, &z);
+            unProjectedPoints->Add(GLVector3(x, y, z));
+        }
+
+        return unProjectedPoints;
+    }
 }

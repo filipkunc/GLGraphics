@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DesignModeDevenv.h"
 #include "GLCanvas.h"
-#include "CanvasEventArgs.h"
+#include "EventArgs.h"
 #include "GLView.h"
 
 namespace GLWrapper
@@ -14,6 +14,7 @@ namespace GLWrapper
 		glCanvas = nullptr;
 		glEnabled = true;
 		neverInitGL = false;
+        testGLErrors = false;
 	}
 
 	GLView::~GLView()
@@ -45,7 +46,15 @@ namespace GLWrapper
 	void GLView::OnLoad(EventArgs ^e)
 	{
 		UserControl::OnLoad(e);
-		InitGL();
+        try
+        {
+            InitGL();
+        }
+        catch (Exception ^e)
+        {
+            glEnabled = false;
+            InitGLErrorHandler(this, gcnew ExceptionEventArgs(e));
+        }
 	}
 
 	void GLView::OnSizeChanged(EventArgs ^e)
@@ -77,13 +86,37 @@ namespace GLWrapper
 
 	#pragma endregion
 
+    GLError GLView::GetGLError()
+    {
+        GLenum errorCode = glGetError();
+        GLError glError = (GLError)errorCode;
+        return glError;
+    }
+
 	void GLView::PaintGL(PaintEventArgs ^paintArgs)
 	{
 		if (!deviceContext || !glRenderingContext)
 			return;
 
-		BeginGL();
+        try
+        {
+            BeginGL();
+        }
+        catch (Exception ^e)
+        {
+            glEnabled = false;
+            InitGLErrorHandler(this, gcnew ExceptionEventArgs(e));
+        }
+		
 		DrawGL(paintArgs);
+
+        if (testGLErrors)
+        {
+            GLenum errorCode = glGetError();
+            GLError glError = (GLError)errorCode;
+            GLErrorHandler(this, gcnew GLErrorEventArgs(glError));
+        }
+
 		SwapBuffers(deviceContext);
 		EndGL();
 	}
@@ -112,12 +145,12 @@ namespace GLWrapper
 		int pixelFormatIndex = ChoosePixelFormat(deviceContext, &pfd);
 		if (pixelFormatIndex == 0)
 		{
-			throw gcnew Exception("Unable to retrieve pixel format");			
+            throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to retrieve pixel format");
 		}
 
 		if (SetPixelFormat(deviceContext, pixelFormatIndex, &pfd) == 0)
 		{
-			throw gcnew Exception("Unable to set pixel format");
+			throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to set pixel format");
 		}
 
 		wglMakeCurrent(0, 0);
@@ -130,17 +163,20 @@ namespace GLWrapper
 		}
 		if (!glRenderingContext)
 		{
-			throw gcnew Exception("Unable to get rendering context");			
+            throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to get rendering context");
 		}
 		if (wglMakeCurrent(deviceContext, glRenderingContext) == 0)
 		{
-			throw gcnew Exception("Unable to make rendering context current");			
+            throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to make rendering context current");
 		}
 	}
 
 	void GLView::BeginGL()
 	{
-		wglMakeCurrent(deviceContext, glRenderingContext);
+		if (wglMakeCurrent(deviceContext, glRenderingContext) == 0)
+		{
+            throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to make rendering context current");
+		}
 	}
 
 	void GLView::EndGL()
@@ -164,7 +200,7 @@ namespace GLWrapper
 		glTranslatef((float)-rect.X, (float)rect.Y + (float)rect.Height, 0);
 		glScalef(1, -1, 1);
 
-		glTranslatef(0.5f, 0.5f, 0.0f);
+		//glTranslatef(0.5f, 0.5f, 0.0f);
 	}
 
 	void GLView::DrawGL(PaintEventArgs ^paintArgs)
@@ -181,8 +217,8 @@ namespace GLWrapper
 
 		glPushMatrix();
 		
-		CanvasEventArgs ^args = gcnew CanvasEventArgs(glCanvas);
-		PaintCanvas(this, args);
+		CanvasEventArgs ^args = gcnew CanvasEventArgs(glCanvas, paintArgs);
+        PaintCanvas(this, args);
 
 		glPopMatrix();
 	}

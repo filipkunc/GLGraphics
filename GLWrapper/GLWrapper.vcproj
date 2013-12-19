@@ -64,6 +64,7 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"
+				KeyFile="$(ProjectDir)..\..\..\..\MEWProjects\MEW.Obfuscation\MEW_Key.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -134,6 +135,7 @@
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
+				KeyFile="$(ProjectDir)..\..\..\..\MEWProjects\MEW.Obfuscation\MEW_Key.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -196,7 +198,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CanvasEventArgs.cpp"
+				RelativePath=".\Math\Camera.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\EventArgs.cpp"
 				>
 			</File>
 			<File
@@ -213,6 +219,14 @@
 			</File>
 			<File
 				RelativePath=".\GLView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Matrix4x4.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Quaternion.cpp"
 				>
 			</File>
 			<File
@@ -235,6 +249,18 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\Math\Vector2D.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector3D.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector4D.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -242,11 +268,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\CanvasEventArgs.h"
+				RelativePath=".\Math\Camera.h"
 				>
 			</File>
 			<File
 				RelativePath=".\DesignModeDevenv.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EventArgs.h"
 				>
 			</File>
 			<File
@@ -266,11 +296,39 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Math\MathDeclaration.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\MathForwardDeclaration.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Matrix4x4.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Quaternion.h"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector2D.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector3D.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector4D.h"
 				>
 			</File>
 		</Filter>

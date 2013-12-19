@@ -13,6 +13,7 @@ namespace GLWrapper
 		GLCanvas ^glCanvas;
 		bool glEnabled;
 		bool neverInitGL;
+        bool testGLErrors;
 	protected:
 		~GLView();
 
@@ -31,6 +32,8 @@ namespace GLWrapper
 		GLView(void);
 
 		event EventHandler<CanvasEventArgs ^> ^PaintCanvas;
+        event EventHandler<ExceptionEventArgs ^> ^InitGLErrorHandler;
+        event EventHandler<GLErrorEventArgs ^> ^GLErrorHandler;
 		
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility::Hidden)]
@@ -55,6 +58,16 @@ namespace GLWrapper
 			bool get() { return neverInitGL; }
 			void set(bool value) { neverInitGL = value; }
 		}
+
+        [Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility::Hidden)]
+		property bool TestGLErrors
+		{
+            bool get() { return testGLErrors; }
+			void set(bool value) { testGLErrors = value; }
+		}
+
+        GLError GetGLError();
 
 	private:
 	#pragma region Windows Form Designer generated code
