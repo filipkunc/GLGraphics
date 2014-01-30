@@ -10,6 +10,10 @@
 #include <gl/GL.h>
 #include <gl/GLU.h>
 
+// from http://www.opengl.org/registry/
+#include "glext.h"
+#include "wglext.h"
+
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Collections;

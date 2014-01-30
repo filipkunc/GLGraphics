@@ -35,6 +35,8 @@ namespace D2DTestApp
             this.DoubleBuffered = true;
         }
 
+        public RenderTargetType _renderTargetType = RenderTargetType.Default;
+
         void InitD2D()
         {
             _factoryD2D = new SharpDX.Direct2D1.Factory();
@@ -43,9 +45,12 @@ namespace D2DTestApp
             HwndRenderTargetProperties properties = new HwndRenderTargetProperties();
             properties.Hwnd = this.Handle;
             properties.PixelSize = new SharpDX.Size2(this.Width, this.Height);
-            properties.PresentOptions = PresentOptions.None;
+            properties.PresentOptions = PresentOptions.Immediately;
 
-            _renderTarget = new WindowRenderTarget(_factoryD2D, new RenderTargetProperties(new PixelFormat(Format.Unknown, AlphaMode.Premultiplied)), properties);
+            _renderTarget = new WindowRenderTarget(_factoryD2D,
+                new RenderTargetProperties(_renderTargetType, 
+                    new PixelFormat(Format.Unknown, AlphaMode.Premultiplied), 96.0f, 96.0f, 
+                    RenderTargetUsage.GdiCompatible, FeatureLevel.Level_DEFAULT), properties);
         }
 
         protected override void OnLoad(EventArgs e)

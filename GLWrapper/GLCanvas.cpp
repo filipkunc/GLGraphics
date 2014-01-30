@@ -25,6 +25,9 @@ namespace GLWrapper
 		_currentColor = Color::Transparent;
 		glColor4ub(0, 0, 0, 0);
 
+        _polygonMode = GLPolygonMode::Fill;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		Clear(backColor);
 	}
 
@@ -166,6 +169,17 @@ namespace GLWrapper
 		Identity();
 	}
 
+    GLPolygonMode GLCanvas::PolygonMode::get()
+    {
+        return _polygonMode;
+    }
+
+    void GLCanvas::PolygonMode::set(GLPolygonMode mode)
+    {
+        _polygonMode = mode;
+        glPolygonMode(GL_FRONT_AND_BACK, (GLenum)_polygonMode);
+    }
+
 	void GLCanvas::DrawLine(Point a, Point b)
 	{
 		glBegin(GL_LINES);
@@ -289,46 +303,6 @@ namespace GLWrapper
 			glVertex2f(rect.X, rect.Y + rect.Height);
 			glEnd();
 		}
-	}
-
-	void GLCanvas::DrawEllipse(RectangleF rect)
-	{
-		const float DEG2RAD = (float)Math::PI / 180.0f;
-
-		float xRadius = rect.Width / 2.0f;
-		float yRadius = rect.Height / 2.0f;
-
-		glBegin(GL_LINE_LOOP);
- 
-		for (float i = 0; i < 360.0f; i++)
-		{
-			float degInRad = i * DEG2RAD;
-			glVertex2f(cosf(degInRad) * xRadius + rect.X + xRadius, sinf(degInRad) * yRadius + rect.Y + yRadius);
-		}
-	
-		glEnd();
-	}
-
-	void GLCanvas::DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed)
-	{
-		const float DEG2RAD = (float)Math::PI / 180.0f;
-
-		float xRadius = rect.Width / 2.0f;
-		float yRadius = rect.Height / 2.0f;
-
-		if (closed)
-			glBegin(GL_LINE_LOOP);
-		else
-			glBegin(GL_LINE_STRIP);
- 
-		for (float i = startAngle; i < startAngle + sweepAngle; i++)
-		{
-			//convert degrees into radians
-			float degInRad = i * DEG2RAD;
-			glVertex2f(cosf(degInRad) * xRadius + rect.X + xRadius, sinf(degInRad) * yRadius + rect.Y + yRadius);
-		}
-	
-		glEnd();
 	}
 
 	void GLCanvas::Identity()
@@ -534,7 +508,7 @@ namespace GLWrapper
         {
             double x, y, z;
             gluProject(point.X, point.Y, point.Z, modelView, projection, viewport, &x, &y, &z);
-            projectedPoints->Add(PointF(x, _size.Height - y));
+            projectedPoints->Add(PointF((float)x, (float)(_size.Height - y)));
         }
 
         return projectedPoints;
@@ -554,8 +528,8 @@ namespace GLWrapper
         for each(PointF point in points)
         {
             double x, y, z;
-            gluUnProject(point.X, _size.Height - point.Y, 0, modelView, projection, viewport, &x, &y, &z);
-            unProjectedPoints->Add(GLVector3(x, y, z));
+            gluUnProject((double)point.X, (double)(_size.Height - point.Y), 0, modelView, projection, viewport, &x, &y, &z);
+            unProjectedPoints->Add(GLVector3((float)x, (float)y, (float)z));
         }
 
         return unProjectedPoints;

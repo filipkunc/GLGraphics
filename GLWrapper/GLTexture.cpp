@@ -160,14 +160,14 @@ namespace GLWrapper
 		float s = (float)originalHeight / (float)height;
 
 		RectangleF srcRect = RectangleF(0.0f, 0.0f, t, s);
-		RectangleF dstRect = RectangleF(0.0f, 0.0f, originalWidth, originalHeight);
+		RectangleF dstRect = RectangleF(0.0f, 0.0f, (float)originalWidth, (float)originalHeight);
 
 		for (int y = rect.Top; y < rect.Bottom; y += originalHeight)
         {
             for (int x = rect.Left; x < rect.Right; x += originalWidth)
             {
-				dstRect.X = x;
-				dstRect.Y = y;
+				dstRect.X = (float)x;
+				dstRect.Y = (float)y;
 						
 				::AddRectangles(dstRect, srcRect);				
             }

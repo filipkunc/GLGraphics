@@ -18,6 +18,11 @@ namespace GraphicsImplementation
             g = graphics;
         }
 
+        public Graphics Graphics
+        {
+            get { return g; }
+        }
+
         public Region Clip
         {
             get { return g.Clip; }

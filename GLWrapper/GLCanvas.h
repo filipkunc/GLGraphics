@@ -5,7 +5,7 @@
 namespace GLWrapper 
 {
     // from http://msdn.microsoft.com/en-us/library/dd373546%28VS.85%29.aspx
-    public enum class GLError
+    public enum class GLError : unsigned int
     {
         InvalidEnum = GL_INVALID_ENUM,
         InvalidValue = GL_INVALID_VALUE,
@@ -14,6 +14,13 @@ namespace GLWrapper
         StackOverflow = GL_STACK_OVERFLOW,
         StackUnderflow = GL_STACK_UNDERFLOW,
         OutOfMemory = GL_OUT_OF_MEMORY,
+    };
+
+    public enum class GLPolygonMode : unsigned int
+    {
+        Point = GL_POINT,
+        Line = GL_LINE,
+        Fill = GL_FILL,
     };
 
 	ref class GLMatrix2D;
@@ -114,6 +121,7 @@ namespace GLWrapper
 		Size _size;
 		PointF _dpi;
 		PointF _globalScale;		
+        GLPolygonMode _polygonMode;
 	public:
 		GLCanvas(Color backColor);
 
@@ -126,7 +134,8 @@ namespace GLWrapper
 		property Color BackColor { Color get(); }
 		property Size CanvasSize { Size get(); void set(Size value); }
 		property PointF Dpi { PointF get(); void set(PointF value); }
-		property PointF GlobalScale { PointF get(); void set(PointF value); }        
+		property PointF GlobalScale { PointF get(); void set(PointF value); }
+        property GLPolygonMode PolygonMode { GLPolygonMode get(); void set(GLPolygonMode mode); }
 		
 		void Clear(Color color);
 
@@ -145,9 +154,6 @@ namespace GLWrapper
 		void FillRectangle(System::Drawing::Rectangle rect, array<Color> ^colors);
 		void FillRectangle(RectangleF rect, array<Color> ^colors);
 		
-		void DrawEllipse(RectangleF rect);
-		void DrawArc(RectangleF rect, float startAngle, float sweepAngle, bool closed);
-
 		void Identity();
 		void Transform(GLMatrix2D ^matrix);
 

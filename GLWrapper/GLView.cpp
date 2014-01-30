@@ -4,6 +4,24 @@
 #include "EventArgs.h"
 #include "GLView.h"
 
+bool WGLExtensionSupported(const char *extension_name)
+{
+    // this is pointer to function which returns pointer to string with list of all wgl extensions
+    PFNWGLGETEXTENSIONSSTRINGEXTPROC wglGetExtensionsStringEXT = nullptr;
+
+    // determine pointer to wglGetExtensionsStringEXT function
+    wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC) wglGetProcAddress("wglGetExtensionsStringEXT");
+
+    if (strstr(wglGetExtensionsStringEXT(), extension_name) == nullptr)
+    {
+        // string was not found
+        return false;
+    }
+
+    // extension is supported
+    return true;
+}
+
 namespace GLWrapper
 {
 	GLView::GLView(void)
@@ -67,8 +85,7 @@ namespace GLWrapper
 	{
 		if (DesignModeDevenv::DesignMode)
 		{
-			e->Graphics->Clear(BackColor);
-			e->Graphics->DrawRectangle(Pens::Gray, 0, 0, this->Width - 1, this->Height - 1);
+			UserControl::OnPaint(e);
 			return;
 		}
 
@@ -80,7 +97,7 @@ namespace GLWrapper
 
 	void GLView::OnPaintBackground(PaintEventArgs ^e)
 	{
-		if (!glEnabled)
+		if (DesignModeDevenv::DesignMode || !glEnabled)
 			UserControl::OnPaintBackground(e);
 	}
 
@@ -169,6 +186,13 @@ namespace GLWrapper
 		{
             throw gcnew Win32Exception(Marshal::GetLastWin32Error(), "Unable to make rendering context current");
 		}
+        
+        if (WGLExtensionSupported("WGL_EXT_swap_control"))
+        {
+            PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+
+            wglSwapIntervalEXT(0); // Disable VSYNC
+        }        
 	}
 
 	void GLView::BeginGL()

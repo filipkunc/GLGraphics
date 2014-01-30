@@ -12,7 +12,7 @@
     <AssemblyName>GraphicsImplementation</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\..\MEW.Obfuscation\MEW_Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -51,8 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Gdi32Extensions.cs" />
     <Compile Include="GDIGraphics.cs" />
     <Compile Include="GLGraphics.cs" />
+    <Compile Include="GraphicsBase.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="IGraphics.cs" />
     <Compile Include="ImageAttributesCache.cs" />
@@ -63,11 +65,10 @@
       <Project>{8F768BBD-00C7-4B3A-9667-6D449A24ABD3}</Project>
       <Name>GLWrapper</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\MEW.Obfuscation\MEW_Key.snk">
-      <Link>MEW_Key.snk</Link>
-    </None>
+    <ProjectReference Include="..\Triangle.NET\Triangle\Triangle.csproj">
+      <Project>{F7907A0A-B75F-400B-9E78-BFAD00DB4D6B}</Project>
+      <Name>Triangle</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

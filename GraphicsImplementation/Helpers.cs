@@ -6,6 +6,7 @@ using System.Drawing;
 using GLWrapper;
 using System.Drawing.Imaging;
 using System.Collections;
+using System.Drawing.Drawing2D;
 
 namespace GraphicsImplementation
 {
@@ -94,28 +95,27 @@ namespace GraphicsImplementation
 
         public static void HintTextBackgroundReset(this IGraphics g)
         {
-            GLGraphics gl = g as GLGraphics;
+            GraphicsBase gl = g as GraphicsBase;
             if (gl != null)
                 gl.FillTextBackground = gl.FillTextBackground_Default;
-
         }
 
         public static void HintTextBackgroundColor(this IGraphics g, Color textBackgroundColor)
         {
-            GLGraphics gl = g as GLGraphics;
+            GraphicsBase gl = g as GraphicsBase;
             if (gl != null)
             {
                 gl.FillTextBackground = gl.FillTextBackground_Default;
                 gl.TextBackgroundColor = textBackgroundColor;
             }
-        }        
+        }
 
         public static void HintTextBackgroundAction(this IGraphics g, FillTextBackground2 fillBackground)
         {
             if (fillBackground == null)
                 return;
 
-            GLGraphics gl = g as GLGraphics;
+            GraphicsBase gl = g as GraphicsBase;
             if (gl != null)
             {
                 gl.FillTextBackground = (textBackground, textLocation, textSize) =>
@@ -134,7 +134,7 @@ namespace GraphicsImplementation
 
         public static FillTextBackground SaveHintTextBackgroundAction(this IGraphics g)
         {
-            GLGraphics gl = g as GLGraphics;
+            GraphicsBase gl = g as GraphicsBase;
             if (gl != null)
                 return gl.FillTextBackground;
             return null;
@@ -142,7 +142,7 @@ namespace GraphicsImplementation
 
         public static void RestoreHintTextBackgroundAction(this IGraphics g, FillTextBackground fillBackground)
         {
-            GLGraphics gl = g as GLGraphics;
+            GraphicsBase gl = g as GraphicsBase;
             if (gl != null)
                 gl.FillTextBackground = fillBackground;
         }
@@ -152,6 +152,94 @@ namespace GraphicsImplementation
             byte[] ret = new byte[bits.Length / 8];
             bits.CopyTo(ret, 0);
             return ret;
+        }
+
+        public static List<PointF[]> GetPathPoints(this GraphicsPath path)
+        {
+            path.Flatten(new Matrix(), 0.1f);
+
+            List<PointF[]> pathPoints = new List<PointF[]>();
+            List<PointF> currentPoints = null;
+
+            for (int i = 0; i < path.PointCount; i++)
+            {
+                var point = path.PathPoints[i];
+
+                switch (path.PathTypes[i])
+                {
+                    case 0x00: // Indicates that the point is the start of a figure. 
+                        {
+                            if (currentPoints != null)
+                            {
+                                pathPoints.Add(currentPoints.ToArray());
+                            }
+                            currentPoints = new List<PointF>();
+                            currentPoints.Add(point);
+                        } break;
+                    case 0x81:
+                        {
+                            currentPoints.Add(point);
+                            currentPoints.Add(currentPoints[0]);
+                        } break;
+                    case 0x01: // Indicates that the point is one of the two endpoints of a line. 
+                        {
+                            currentPoints.Add(point);
+                        } break;
+                    case 0x83: //todo: todle je kombinace
+                    case 0x03: // Indicates that the point is an endpoint or control point of a cubic Bézier spline. 
+                        throw new NotImplementedException();
+                    case 0x07: // Masks all bits except for the three low-order bits, which indicate the point type.
+                        throw new NotImplementedException();
+                    case 0x20: // Specifies that the point is a marker. 
+                        throw new NotImplementedException();
+                    case 0x80: // Specifies that the point is the last point in a closed subpath (figure).
+                        currentPoints.Add(point);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            if (currentPoints != null)
+                pathPoints.Add(currentPoints.ToArray());
+
+            return pathPoints;
+        }
+
+        /// <summary>
+        /// Triangulation using https://triangle.codeplex.com/
+        /// </summary>
+        /// <typeparam name="TVertex"></typeparam>
+        /// <param name="path"></param>
+        /// <param name="converter"></param>
+        /// <returns></returns>
+        public static List<TVertex> Triangulate<TVertex>(this GraphicsPath path, Func<TriangleNet.Data.Vertex, TVertex> converter)
+        {
+            List<TVertex> vertices = new List<TVertex>();
+            
+            var pathPoints = path.GetPathPoints();
+
+            foreach (var points in pathPoints)
+            {
+                TriangleNet.Geometry.InputGeometry input = new TriangleNet.Geometry.InputGeometry();
+                foreach (var point in points)
+                    input.AddPoint(point.X, point.Y);
+                TriangleNet.Mesh mesh = new TriangleNet.Mesh();
+                mesh.Triangulate(input);
+
+                var triangles = mesh.Triangles;
+
+                foreach (var triangle in triangles)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var vertex = triangle.GetVertex(i);
+                        vertices.Add(converter(vertex));
+                    }
+                }
+            }
+
+            return vertices;
         }
     }
 }

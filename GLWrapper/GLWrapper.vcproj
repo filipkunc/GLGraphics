@@ -135,7 +135,7 @@
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
-				KeyFile="$(ProjectDir)..\..\..\..\MEWProjects\MEW.Obfuscation\MEW_Key.snk"
+				KeyFile=""
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -284,6 +284,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\glext.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GLMatrix2D.h"
 				>
 			</File>
@@ -329,6 +333,10 @@
 			</File>
 			<File
 				RelativePath=".\Math\Vector4D.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wglext.h"
 				>
 			</File>
 		</Filter>
